@@ -161,9 +161,10 @@ Chosen for:
 - Large community — important for finding help and resources
 - Cross-platform desktop export — Linux, Windows, macOS out of the box
 
-### Architecture Considerations (TBD)
+### Architecture Considerations
 
 - Simulation engine should be decoupled from rendering (testable independently)
 - Economic model should be modular (easy to add new sectors, policies, mechanics)
-- Data-driven configuration for scenarios, nations, resource types
+- **Data-driven from day one** — all game data loaded from JSON files, never hardcoded. See [MODDING.md](MODDING.md).
+- **Mod support from day one** — the base game is structured like a mod. Two-tier modding: data overrides (casual) and plugin API (advanced). Multiple mods combinable with dependency resolution.
 - Save/load system for game state

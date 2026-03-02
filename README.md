@@ -23,9 +23,19 @@ A Victoria 3-inspired real-time economic simulation where the underlying economi
 - **Language:** C#
 - **Platforms:** Linux, Windows, macOS
 
+## Modding
+
+The game is designed for modding from day one. All game data lives in external JSON files — the base game itself loads through the same system mods use.
+
+- **Data mods** — tweak economic parameters, add sectors/goods/scenarios via JSON. No code required.
+- **Plugin mods** — extend game mechanics, add new agent types, custom AI, new UI panels via C# plugins.
+- **Combinable** — multiple mods with dependency resolution and load ordering.
+
+See [docs/MODDING.md](docs/MODDING.md) for the full modding architecture.
+
 ## Current Status
 
-**Requirements gathering phase.** See [docs/DESIGN.md](docs/DESIGN.md) for the game design document and [docs/MVP.md](docs/MVP.md) for the MVP scope.
+**Requirements gathering phase.** See [docs/DESIGN.md](docs/DESIGN.md) for the game design document, [docs/MVP.md](docs/MVP.md) for the MVP scope, and [docs/ECONOMIC-MODEL.md](docs/ECONOMIC-MODEL.md) for the simulation model.
 
 ## License
 
