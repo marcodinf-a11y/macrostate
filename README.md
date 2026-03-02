@@ -23,6 +23,10 @@ A Victoria 3-inspired real-time economic simulation where the underlying economi
 - **Language:** C#
 - **Platforms:** Linux, Windows, macOS
 
+## In-Game Console
+
+A full-power command line console (like Paradox games) available in all builds. Query any variable, manipulate the economy, run scripts, inspect balance sheets. Operates through the SFC model to maintain accounting consistency. See [docs/CONSOLE.md](docs/CONSOLE.md).
+
 ## Modding
 
 The game is designed for modding from day one. All game data lives in external JSON files — the base game itself loads through the same system mods use.
