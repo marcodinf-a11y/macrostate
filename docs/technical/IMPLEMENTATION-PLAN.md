@@ -362,10 +362,10 @@ Phase 15: Balancing & Polish
 13. `FrMod001_ChangedLagDuration_AffectsPolicyTiming`
 
 **GREEN — implement to make tests pass:**
-1. Implement public investment (infrastructure → capacity, public services → productivity — rates from `IDataProvider`)
-2. Implement private investment (demand-driven, funded from profits + loans — thresholds from `IDataProvider`)
+1. Implement public investment per Architecture Section 3.9 (infrastructure → capacity, public services → productivity — rates from `IDataProvider`)
+2. Implement private investment per Architecture Section 3.9 (demand-driven, funded from profits + loans — thresholds from `IDataProvider`)
 3. Implement capital depreciation (rates from `IDataProvider`)
-4. Implement policy lag system (queue, pipeline tracking — durations from `IDataProvider`)
+4. Implement `IPolicyPipeline` and `PendingPolicy` per Architecture Section 3.8 (queue, pipeline tracking, flush — durations from `IDataProvider`)
 5. Implement economic lags (sticky wages, gradual prices, hiring/firing delays — from `IDataProvider`)
 
 **REFACTOR:** Extract lag system into reusable pipeline. Ensure investment and depreciation are symmetric.

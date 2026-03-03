@@ -82,7 +82,7 @@ This returns `ISimulationState`, which is read-only. But to actually run the sim
 
 ---
 
-### C4. Policy Lag System Has No Architecture Component
+### ~~C4. Policy Lag System Has No Architecture Component~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -105,9 +105,11 @@ The Architecture mentions lags in the data flow narrative (4.2: "Simulation Engi
 - A mechanism for the tick engine to process pending changes at the start of each phase
 - Data-driven lag durations (loaded from `IDataProvider`)
 
+**Resolution:** Added `IPolicyPipeline` and `IPendingPolicy` interfaces to Architecture Section 3.8, with `PolicyChangeKind` and `PolicyChangeStatus` enums. Added `PolicyPipeline` property to `ISimulationState` (Section 3.1). Updated Tick Engine description (Section 2.1) to flush pipeline at Government Phase start. Updated Government Phase in tick data flow (Section 4.1). Replaced vague player input narrative (Section 4.2) with specific pipeline flow. Added `PolicyPipeline.cs` and `PendingPolicy.cs` to project structure (Section 5). Added `IPolicyPipeline` to injectable dependencies (Section 6.5). Updated Implementation Plan Phase 7 to reference Architecture Section 3.8. Also addresses L5 (overlapping policy changes).
+
 ---
 
-### C5. Investment and Depreciation Absent from Architecture
+### ~~C5. Investment and Depreciation Absent from Architecture~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -124,6 +126,8 @@ The Architecture has no investment component. There is no `InvestmentEngine.cs` 
 **Why it matters:** Investment and depreciation are core economic mechanics that affect capacity, productivity, and inter-sector dependencies. Without architecture, Phase 7 must design this from scratch.
 
 **Suggested resolution:** Add an investment/depreciation step to the tick data flow (likely in the Production Phase or as a new sub-phase). Add an `InvestmentEngine.cs` to the project structure. Define how investment decisions interact with the banking system (loan requests) and the production system (capital goods from industry).
+
+**Resolution:** Added `IInvestmentEngine` and `ICapitalStock` interfaces in Architecture Section 3.9, with methods for public investment processing, private investment processing, and depreciation. Added `CapitalStock`, `DepreciationRate`, and `InvestmentDemand` properties to `IFirm` (Section 3.3). Inserted investment steps into the tick data flow (Section 4.1): `ProcessPublicInvestment()` in Government Phase, `ProcessPrivateInvestment()` in Production Phase, `ApplyDepreciation()` in Accounting Phase. Added `InvestmentEngine.cs` to project structure Economics/ directory and `InvestmentData.cs` to Data/Models/ (Section 5). Added `IInvestmentEngine` to injectable dependencies (Section 6.5). Added Investment Engine component description to Section 2.1. Phase 7 of the Implementation Plan now references Architecture Section 3.9 for both public and private investment implementation.
 
 ---
 

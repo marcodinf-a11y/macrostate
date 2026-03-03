@@ -65,12 +65,19 @@ This is the heart of the game. It contains all economic logic, agent behavior, a
 - Orchestrates the monthly tick sequence (Government → Production → Market → Financial → Accounting)
 - Manages simulation time (current month/year)
 - Handles tick scheduling and phase ordering
+- Flushes the policy pipeline at the start of each Government Phase (applies changes whose lag has expired)
 
 **Agent System**
 - Base interfaces for all economic agents
 - Concrete implementations: Government, CentralBank, CommercialBank, Household, Firm
 - Agent registry for looking up and iterating agents
 - Agent behavior logic (production decisions, consumption, hiring, lending)
+
+**Investment Engine**
+- Processes public investment effects (infrastructure → capacity, public services → productivity) with data-driven lag durations via `IPolicyPipeline`
+- Evaluates private firm investment decisions based on capacity utilization thresholds
+- Applies capital depreciation to all capital stocks (public and private) each tick
+- All rates, thresholds, and lags loaded from `IDataProvider`
 
 **Accounting System (SFC)**
 - Double-entry transaction recording
@@ -150,6 +157,7 @@ public interface ISimulationState
 
     IEconomicIndicators Indicators { get; }
     IReadOnlyList<IBalanceSheet> AllBalanceSheets { get; }
+    IReadOnlyList<IPendingPolicy> PolicyPipeline { get; }
 
     // For console: query any value by path
     object QueryByPath(string path);
@@ -196,6 +204,9 @@ public interface IFirm : IAgent
     decimal UnitLaborCost { get; }
     int EmployeeCount { get; }
     decimal Inventory { get; }
+    decimal CapitalStock { get; }        // Current private capital level
+    decimal DepreciationRate { get; }    // Sector-specific, from IDataProvider
+    decimal InvestmentDemand { get; }    // Calculated each tick from capacity gap
 }
 
 public interface IHouseholdClass : IAgent
@@ -294,6 +305,92 @@ public interface ISimulationFactory
 
 Accepts an `IDataProvider` (either `JsonDataProvider` for the real game or `InMemoryDataProvider` for tests) and an optional seed for deterministic randomness. This is the single entry point for constructing a runnable simulation.
 
+### 3.8 Policy Pipeline
+
+Player policy changes (tax rate, spending level, spending allocation) do not take effect immediately. They enter a pipeline with data-driven lag durations (FR-TIM-001). The pipeline tracks pending changes so the UI can display them (FR-TIM-003, FR-UI-007).
+
+```csharp
+public enum PolicyChangeKind
+{
+    TaxRate,
+    SpendingLevel,
+    SpendingAllocation
+}
+
+public enum PolicyChangeStatus
+{
+    Enacted,      // Player submitted it — lag countdown starts
+    InPipeline,   // Waiting for lag to expire
+    TakingEffect  // Applied this tick
+}
+
+public interface IPendingPolicy
+{
+    PolicyChangeKind Kind { get; }
+    PolicyChangeStatus Status { get; }
+    int EnactedTick { get; }
+    int EffectTick { get; }        // EnactedTick + lag duration
+    int TicksRemaining { get; }
+    object OldValue { get; }
+    object NewValue { get; }
+}
+
+public interface IPolicyPipeline
+{
+    /// Enqueue a policy change. Lag duration is looked up from IDataProvider
+    /// using the path "lags.policy.<kind>" (e.g., "lags.policy.taxRate" → 1).
+    void Enqueue(PolicyChangeKind kind, object newValue, int currentTick);
+
+    /// Called by TickEngine at the start of Government Phase.
+    /// Returns changes whose lag has expired this tick, with Status = TakingEffect.
+    IReadOnlyList<IPendingPolicy> FlushReady(int currentTick);
+
+    /// All pending and recently-applied changes (for UI pipeline display).
+    IReadOnlyList<IPendingPolicy> PendingChanges { get; }
+}
+```
+
+`SimulationCommands` delegates to `IPolicyPipeline.Enqueue()` instead of directly mutating state. The `TickEngine` calls `FlushReady()` at the start of the Government Phase and applies the returned changes. `ISimulationState.PolicyPipeline` exposes `PendingChanges` to the UI (read-only).
+
+**Overlapping changes:** If the player changes the same policy twice before the first takes effect, both entries exist in the pipeline. `FlushReady` applies them in enqueue order. The second change overwrites the first when it arrives.
+
+**Note on economic lags (FR-TIM-002):** Wage stickiness, price adjustment speed, hiring delays, etc. are *not* queued commands — they are behavioral parameters governing how fast agents react. These are handled within individual engines (e.g., `PricingEngine` applies gradual price adjustments using a speed parameter from `IDataProvider`). The `IPolicyPipeline` component is only for player-initiated policy changes.
+
+### 3.9 Investment Engine
+
+```csharp
+public interface ICapitalStock
+{
+    string OwnerId { get; }
+    decimal PublicInfrastructure { get; }
+    decimal PublicServices { get; }
+    decimal PrivateCapital { get; }
+}
+
+public interface IInvestmentEngine
+{
+    /// Processes public investment: infrastructure allocation → capacity boost,
+    /// services allocation → productivity boost. Effects deferred via IPolicyPipeline
+    /// using lag durations from IDataProvider.
+    /// Called during Government Phase after spending is executed.
+    void ProcessPublicInvestment(ILedger ledger, IPolicyPipeline pipeline, int currentTick);
+
+    /// Evaluates and executes private firm investment decisions.
+    /// Firms invest when capacity utilization exceeds a data-driven threshold
+    /// and they have retained profits or can obtain bank credit.
+    /// Capital goods are purchased from the industry sector (inter-sector demand).
+    /// Called during Production Phase before production occurs.
+    void ProcessPrivateInvestment(ILedger ledger);
+
+    /// Applies depreciation to all capital stocks (public and private).
+    /// Rates are sector-specific, loaded from IDataProvider.
+    /// Called during Accounting Phase before balance sheet update.
+    void ApplyDepreciation(ILedger ledger);
+}
+```
+
+Investment logic is split across three existing tick phases rather than adding a sixth phase. Public investment reuses `IPolicyPipeline` for lag effects — infrastructure spending enters the pipeline with a 6-12 tick lag (FR-TIM-001) and boosts capacity when it matures; public services spending enters with a 12-24 tick lag and boosts productivity. Private investment creates inter-sector demand: when firms decide to expand, they purchase capital goods from the manufacturing sector, generating demand and transactions in that sector. All private investment transactions use `MoneyCircuit.Deposits`, funded from retained profits or bank credit (Phase 5 lending).
+
 ## 4. Data Flow
 
 ### 4.1 Simulation Tick
@@ -307,12 +404,15 @@ Game Controller
 Tick Engine
     │
     ├── 1. Government Phase
+    │   ├── Flush policy pipeline → apply changes whose lag has expired
     │   ├── Collect taxes → Ledger.RecordTransaction (Deposits: taxpayer → bank) then (Reserves: bank → treasury)
     │   ├── Execute spending → Ledger.RecordTransaction (Reserves: treasury → bank) then (Deposits: bank → recipient)
+    │   ├── Process public investment → InvestmentEngine.ProcessPublicInvestment()
     │   ├── Pay bond interest → Ledger.RecordTransaction (Reserves + Deposits)
     │   └── Bond auction → BondMarket.RunAuction()
     │
     ├── 2. Production Phase
+    │   ├── Evaluate firm investment → InvestmentEngine.ProcessPrivateInvestment()
     │   ├── Firms estimate demand
     │   ├── Firms set production targets
     │   ├── Firms post wages → LaborMarket.PostJobs()
@@ -330,6 +430,7 @@ Tick Engine
     │   └── Defaults processed
     │
     └── 5. Accounting Phase
+        ├── Apply depreciation → InvestmentEngine.ApplyDepreciation()
         ├── Balance sheets updated
         ├── SFC consistency check → Ledger.CheckConsistency()
         ├── Circuit isolation check → Ledger.CheckCircuitIsolation()
@@ -349,13 +450,21 @@ Policy Panel node emits signal
 Game Controller receives signal
     │
     ▼
-Game Controller calls ISimulationCommands.SetSpendingLevel(newValue)
+Game Controller calls ISimulationCommands.SetTaxRate(newRate)
     │
     ▼
-Simulation Engine queues policy change with appropriate lag
+SimulationCommands delegates to IPolicyPipeline.Enqueue(TaxRate, newRate, currentTick)
+    │  (lag duration looked up from IDataProvider, e.g., "lags.policy.taxRate" → 1 tick)
+    ▼
+IPendingPolicy created: EffectTick = currentTick + lagDuration, Status = InPipeline
     │
     ▼
-N ticks later: policy change takes effect in Government Phase
+UI reads ISimulationState.PolicyPipeline → shows change in pipeline display
+    │
+    ▼
+N ticks later: TickEngine calls pipeline.FlushReady(currentTick)
+    → returns this change with Status = TakingEffect
+    → Government Phase applies the new tax rate
 ```
 
 ### 4.3 Console Command
@@ -389,7 +498,9 @@ game/
 │   │   ├── Core/
 │   │   │   ├── TickEngine.cs         # Tick orchestration
 │   │   │   ├── SimulationState.cs    # Central state container
-│   │   │   └── SimulationCommands.cs # Command handler
+│   │   │   ├── SimulationCommands.cs # Command handler
+│   │   │   ├── PolicyPipeline.cs     # IPolicyPipeline implementation
+│   │   │   └── PendingPolicy.cs      # IPendingPolicy value type
 │   │   ├── Accounting/
 │   │   │   ├── Ledger.cs             # Double-entry ledger
 │   │   │   ├── BalanceSheet.cs       # Balance sheet per agent
@@ -409,6 +520,7 @@ game/
 │   │   ├── Economics/
 │   │   │   ├── PricingEngine.cs      # Cost-plus markup calculation
 │   │   │   ├── ProductionEngine.cs   # Production function
+│   │   │   ├── InvestmentEngine.cs   # Public/private investment and depreciation
 │   │   │   └── IndicatorCalculator.cs # GDP, inflation, etc.
 │   │   └── Data/
 │   │       ├── IDataProvider.cs      # Data loading interface
@@ -417,6 +529,7 @@ game/
 │   │           ├── SectorData.cs
 │   │           ├── HouseholdData.cs
 │   │           ├── GoodsData.cs
+│   │           ├── InvestmentData.cs
 │   │           └── ScenarioData.cs
 │   │
 │   └── Game/                         # Godot project
@@ -596,6 +709,8 @@ All simulation components receive their dependencies via constructor injection. 
 - `ILedger` — transaction recording and SFC checking
 - `IAgentRegistry` — agent lookup and iteration
 - `IRandom` — seeded random number generation for deterministic tests
+- `IPolicyPipeline` — policy change queuing and lag tracking (durations from `IDataProvider`)
+- `IInvestmentEngine` — public/private investment processing and capital depreciation (rates and thresholds from `IDataProvider`)
 
 Example: a `Firm` receives `ILedger` and `IDataProvider` in its constructor. In production, these are the real implementations wired through `ISimulationFactory`. In tests, they are in-memory fakes that allow precise control over inputs and verification of outputs.
 
