@@ -1,0 +1,25 @@
+# Godot
+.godot/
+*.translation
+
+# C# / .NET
+bin/
+obj/
+*.csproj.nuget.*
+*.user
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.ncrunchproject
+*.ncrunchsolution
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Godot export
+export_presets.cfg
+*.export
