@@ -175,7 +175,7 @@ The Architecture mentions `PricingEngine.cs` and cost-plus markup pricing but pr
 
 ---
 
-### M2. Console Command Parsing Responsibility Is Contradictory
+### ~~M2. Console Command Parsing Responsibility Is Contradictory~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -187,6 +187,8 @@ The Architecture mentions `PricingEngine.cs` and cost-plus markup pricing but pr
 If the Console node parses first, it should call typed methods (like `SetSpendingLevel`), not pass a raw string. If the simulation parses, then the Console node is not parsing.
 
 **Suggested resolution:** Clarify: the Console node handles input display, history, and tokenization. It then either (a) routes to typed `ISimulationCommands` methods for simulation commands and to the Game Controller for time commands, or (b) passes a raw string to a `CommandInterpreter` in the simulation layer. Remove the ambiguity by picking one and updating the data flow.
+
+**Resolution:** Removed `ExecuteConsoleCommand(string command)` from `ISimulationCommands` (Section 3.2). The console node in the Godot layer owns all parsing; after parsing, it routes to typed methods on the appropriate interface: queries → `ISimulationState.QueryByPath()`, policy → `ISimulationCommands` typed methods (`SetTaxRate`, `SetSpendingLevel`, `SetSpendingAllocation`), time → `ITimeControl`. Section 4.3 already reflects this three-branch routing (updated in M1 resolution). Raw strings never cross the Godot boundary into the simulation engine, preserving the pure-library principle (Section 6.1). Note: if future requirements need arbitrary parameter setting beyond the three policy levers (e.g., a debug `set` command), the right approach is a typed `SetByPath(string path, object value)` method — the write counterpart to `QueryByPath` — not a raw string command. That decision is deferred and intersects with M10 (path schema unspecified).
 
 ---
 

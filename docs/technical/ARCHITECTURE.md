@@ -175,9 +175,6 @@ public interface ISimulationCommands
     void SetSpendingAllocation(SpendingAllocation allocation);
     void SetTaxRate(decimal rate);
 
-    // Console commands
-    void ExecuteConsoleCommand(string command);
-
     // Time
     void Tick();
     void Tick(int count);
