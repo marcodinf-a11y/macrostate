@@ -358,7 +358,7 @@ The game models the real-world procedure (auctions) while allowing players to ob
 
 ### Auction Mechanics
 1. Government announces bond issuance (amount and maturity)
-2. Commercial banks and high-income households submit bids (price/yield)
+2. Commercial banks submit bids (price/yield)
 3. Bonds allocated to highest bidders (lowest yield demanded)
 4. If demand is insufficient, interest rate rises to attract buyers
 5. **Central bank as buyer of last resort:** the central bank can buy any unsold bonds, effectively setting a ceiling on rates
@@ -372,8 +372,8 @@ The game models the real-world procedure (auctions) while allowing players to ob
 ### Interest Payments
 - Government pays interest on outstanding bonds each period
 - This is government spending (creates new currency)
-- Interest payments flow to bond holders (banks, wealthy households)
-- This creates a distributional dynamic: deficit → bonds → interest → flows to wealth holders
+- Interest payments flow to bond holders (banks in MVP; post-MVP secondary market enables household bond holding)
+- This creates a distributional dynamic: deficit → bonds → interest → flows to bond holders
 
 ## Investment
 

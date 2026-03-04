@@ -278,7 +278,7 @@ But commercial banks are private sector entities that necessarily interact with 
 
 ---
 
-### M8. Household Bond Participation Has No Architecture Support
+### ~~M8. Household Bond Participation Has No Architecture Support~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -288,6 +288,8 @@ But commercial banks are private sector entities that necessarily interact with 
 **The problem:** FR-BND-001 states: "Banks and high-income households must be able to bid" on government bonds. The Architecture provides no mechanism for household bond participation. The `IHouseholdClass` interface (Architecture 3.3) has no bond-related properties. Implementation Plan Phase 6 has no test for household bond bidding.
 
 **Suggested resolution:** Add bond-related properties to `IHouseholdClass` (or its state interface). Add a test to Phase 6: `FrBnd001_HighIncomeHouseholds_CanBidOnBonds`.
+
+**Resolution:** Removed household participation from FR-BND-001 entirely. In virtually all sovereign bond markets (Germany, UK, Japan), only designated banks/dealers can bid at primary auctions — the US TreasuryDirect program is the exception, not the rule. MMT literature (Mosler, Wray) describes bond issuance as a reserve-draining operation where banks exchange reserves for securities; households are absent from this operational description. Furthermore, the game's own money circuit rules (FR-SIM-002) restrict non-bank private agents to the deposits circuit, while bond purchases at auction require reserves — household auction participation would violate circuit isolation. Updated FR-BND-001 in the PRD to specify commercial banks only (households acquire bonds post-MVP via secondary market). Updated ECONOMIC-MODEL.md auction mechanics and interest payment narrative. Updated PRD MVP Definition of Done. Removed household bond test from L2 missing coverage list. No `IHouseholdClass` bond properties or Phase 6 household tests needed.
 
 ---
 
@@ -378,7 +380,7 @@ The following PRD sub-requirements have no corresponding test in the Implementat
 | FR-PRC-003 | Sector-specific price tracking |
 | FR-AGT-004 | Debt capacity varies by household class |
 | FR-AGT-004 | Price elasticity varies by need level |
-| FR-BND-001 | High-income households can bid on bonds |
+| ~~FR-BND-001~~ | ~~High-income households can bid on bonds~~ (removed from requirement; see M8 resolution) |
 | FR-INV-002 | Capital goods produced by industry sector |
 | FR-TIM-002 | Hiring/firing lag (1-2 ticks) |
 | FR-TIM-002 | Investment-to-capacity lag (3-6 ticks) |
@@ -530,7 +532,7 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | FR-PRC-003 | L2 (sector-specific price tracking untested) |
 | FR-LBR-001 | L2 (wage stickiness and determinants untested) |
 | FR-LBR-002 | L2 (cross-sector mobility untested) |
-| FR-BND-001 | M8 (household bond participation) |
+| FR-BND-001 | ~~M8 (household bond participation)~~ ✅ |
 | FR-INV-001 | C5 (absent from architecture) |
 | FR-INV-002 | C5 (absent from architecture), L2 (capital goods from industry untested) |
 | FR-TIM-001 | C4 (no architecture component), L2 (lag ranges untested) |

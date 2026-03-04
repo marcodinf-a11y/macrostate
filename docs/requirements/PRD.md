@@ -167,7 +167,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
 
 #### FR-BND-001: Auction-Based Issuance
 - Government must issue bonds via auction
-- Banks and high-income households must be able to bid
+- Commercial banks must be able to bid (households acquire bonds post-MVP via secondary market)
 - Bond interest rate must be determined by auction demand
 - Central bank must act as buyer of last resort (can buy unsold bonds)
 
@@ -435,7 +435,7 @@ The MVP is complete when:
 5. **Production runs** — firms produce based on profit-driven decisions; households consume by needs hierarchy
 6. **Labor market functions** — firms post wages, households accept/reject, unemployment emerges naturally
 7. **Bank lending works** — banks create money via loans; repayments destroy it
-8. **Bond auctions work** — government issues bonds; banks/households bid; CB backstops
+8. **Bond auctions work** — government issues bonds; banks bid; CB backstops
 9. **Inflation responds correctly** — driven by unit labor costs and demand pressure, not raw spending
 10. **Charts update live** — all key indicators chart in real-time
 11. **Scenario playable** — one scenario with win/lose conditions completable
