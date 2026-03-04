@@ -37,8 +37,9 @@ An open source, single-player economic simulation game built on Modern Monetary 
 - The simulation must track central bank money (reserves) and deposit money (bank deposits) as separate layers
 - Government spending must flow: Treasury → bank reserves → recipient deposits
 - Taxation must flow: deposits → reserves → Treasury (destruction)
-- The private sector must only interact with deposit money
+- Non-bank private agents (households, firms) must only interact with deposit money
 - The central bank and Treasury must only interact with reserve money
+- Commercial banks must operate in both circuits, holding reserve accounts at the central bank and maintaining deposit accounts for customers
 
 #### FR-SIM-003: Monthly Tick Processing
 - Each simulation tick represents one month

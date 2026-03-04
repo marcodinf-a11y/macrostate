@@ -246,7 +246,7 @@ There is no aggregation mechanism to produce sector-level balance sheets from pe
 
 ---
 
-### M6. PRD FR-SIM-002 Oversimplifies Money Circuit Access
+### ~~M6. PRD FR-SIM-002 Oversimplifies Money Circuit Access~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -258,6 +258,8 @@ There is no aggregation mechanism to produce sector-level balance sheets from pe
 But commercial banks are private sector entities that necessarily interact with **both** circuits: they hold reserve accounts at the central bank (reserve money) and maintain deposit accounts for customers (deposit money). FR-AGT-003 explicitly requires banks to "hold a reserve account at the central bank" and "buy government bonds at auction" (which requires reserves).
 
 **Suggested resolution:** Amend FR-SIM-002 to clarify that banks bridge both circuits. Something like: "Non-bank private sector agents (households, firms) must only interact with deposit money. The central bank and Treasury must only interact with reserve money. Commercial banks operate in both circuits, holding reserve accounts at the central bank and deposit accounts for customers."
+
+**Resolution:** Amended FR-SIM-002 in the PRD to replace the two oversimplified circuit-access bullets with three precise rules: non-bank private agents (households, firms) → Deposits only, central bank and Treasury → Reserves only, commercial banks → both circuits. This aligns the PRD with Architecture Section 2.1 (line 85), which already had the correct rules from the C2 resolution.
 
 ---
 
@@ -517,7 +519,7 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 
 | Requirement | Issue(s) |
 |---|---|
-| FR-SIM-002 | C2 (ILedger interface), M6 (oversimplified circuit access) |
+| FR-SIM-002 | ~~C2 (ILedger interface)~~ ✅, ~~M6 (oversimplified circuit access)~~ ✅ |
 | FR-SIM-004 | M3 (IEconomicIndicators undefined), M7 (bond yields), L2 (missing indicator tests) |
 | FR-AGT-001 | M3 (IGovernmentState undefined) |
 | FR-AGT-003 | L11 (single vs. plural bank ambiguity) |
