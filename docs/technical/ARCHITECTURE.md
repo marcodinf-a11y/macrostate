@@ -583,7 +583,7 @@ CurrentMarkup += speed × (TargetMarkup - CurrentMarkup)
 CurrentMarkup = max(CurrentMarkup, MinimumMarkup)
 ```
 
-Where `DemandAdjustmentFactor > 1` when capacity utilization exceeds `CapacityThreshold`, and `SupplyPressureFactor = NormalInputAvailability / ActualInputAvailability` (> 1 when inputs are scarce). Both factors use the same asymmetric speeds — they ratchet up fast but decay slowly. See ADR-0010 for rationale.
+Where `DemandAdjustmentFactor = TargetInventoryRatio / ActualInventoryRatio` (> 1 when inventories deplete, < 1 when inventories pile up; Caiani et al. 2016), and `SupplyPressureFactor = NormalInputAvailability / ActualInputAvailability` (> 1 when inputs are scarce). Both factors use the same asymmetric speeds — they ratchet up fast but decay slowly. See ADR-0010 for rationale.
 
 **Phase:** Market Phase (before household purchasing). See Section 4.1 tick data flow.
 

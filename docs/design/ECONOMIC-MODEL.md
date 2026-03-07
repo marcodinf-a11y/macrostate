@@ -302,10 +302,15 @@ Where:
   Markup = Base markup x Demand adjustment factor
 ```
 
-**Demand adjustment factor:**
-- When demand < capacity (slack): markup tends toward base or below (competitive pressure)
-- When demand ~ capacity: markup at base level
-- When demand > capacity (overheating): markup increases (sellers have pricing power)
+**Demand adjustment factor** (Caiani et al. 2016):
+```
+DemandAdjustmentFactor = TargetInventoryRatio / ActualInventoryRatio
+```
+- When inventories pile up (low demand): factor < 1, markup falls (competitive pressure)
+- When inventories at target: factor = 1, markup at base level
+- When inventories deplete (high demand): factor > 1, markup rises (sellers have pricing power)
+
+Inventory-based adjustment is preferred over capacity-utilization-based because firms directly observe their own inventory levels. `TargetInventoryRatio` is a per-sector parameter from sectors.json.
 
 **Markup adjustment asymmetry:**
 Markups adjust at different speeds in each direction:

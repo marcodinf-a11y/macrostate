@@ -20,3 +20,7 @@ Each ADR follows: Title, Status, Context, Decision, Consequences.
 | [ADR-0008](ADR-0008-bond-yields-definition.md) | Bond yields as weighted average coupon rate | Accepted |
 | [ADR-0009](ADR-0009-leontief-io-production-function.md) | Leontief I-O production function | Accepted |
 | [ADR-0010](ADR-0010-asymmetric-markup-sellers-inflation.md) | Asymmetric markup adjustment and seller's inflation | Accepted |
+| [ADR-0011](ADR-0011-inventory-based-markup-adjustment.md) | Inventory-based demand adjustment for markup pricing | Accepted |
+| [ADR-0012](ADR-0012-geometric-depreciation.md) | Geometric depreciation for capital stock | Accepted |
+| [ADR-0013](ADR-0013-godley-lavoie-wage-equation.md) | Godley & Lavoie wage equation | Accepted |
+| [ADR-0014](ADR-0014-inter-sector-labor-mobility.md) | Inter-sector labor mobility with on-the-job search | Accepted |

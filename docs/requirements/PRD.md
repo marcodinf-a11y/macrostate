@@ -134,8 +134,12 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 #### FR-PRC-001: Cost-Plus Markup Pricing
 - Prices must be calculated as: (unit labor cost + unit material cost) × (1 + markup)
 - Unit labor cost must equal: total wages / total output (not raw wage rate)
-- Markup must adjust based on demand relative to capacity with asymmetric speeds: fast upward (firms exploit pricing power quickly), slow downward (firms resist margin compression) (ADR-0010)
-- Per-sector parameters `markupUpwardSpeed` and `markupDownwardSpeed` must be loaded from sector data
+- Markup must adjust toward a target via partial adjustment (Caiani et al. 2016): `CurrentMarkup += speed × (TargetMarkup - CurrentMarkup)`
+- `TargetMarkup = BaseMarkup × DemandAdjustmentFactor × SupplyPressureFactor`
+- `DemandAdjustmentFactor = TargetInventoryRatio / ActualInventoryRatio` — greater than 1 when inventories deplete (demand exceeds supply), less than 1 when inventories pile up (supply exceeds demand)
+- `speed = markupUpwardSpeed` when target > current, `markupDownwardSpeed` when target < current (asymmetric adjustment per ADR-0010)
+- CurrentMarkup must never fall below MinimumMarkup
+- Per-sector parameters (`markupUpwardSpeed`, `markupDownwardSpeed`, `baseMarkup`, `minimumMarkup`, `targetInventoryRatio`) must be loaded from sector data
 
 #### FR-PRC-002: Inflation Buffers and Supply-Side Markup Pressure
 - Productivity gains must absorb wage increases (if productivity rises with wages, no price pressure)
@@ -159,13 +163,18 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 
 #### FR-LBR-001: Wage Posting
 - Firms must post job openings with an offered wage
-- Wages must be influenced by: sector conditions, labor scarcity, firm profitability
-- Wages must be sticky downward (slow to decrease even when labor is abundant)
+- Wage growth must follow the Godley & Lavoie (2012) wage equation: `ΔW/W = Ω₀ + Ω₁ × (ΔPr/Pr) - Ω₂ × UR + Ω₃ × π`, where `ΔPr/Pr` is sector productivity growth, `UR` is sector unemployment rate, and `π` is the inflation rate
+- Ω coefficients (Ω₀ autonomous growth, Ω₁ productivity pass-through, Ω₂ unemployment dampening, Ω₃ inflation catch-up) must be loaded from sector data — downward wage rigidity emerges from calibration, not a separate mechanism
+- Government wages must use distinct Ω coefficients reflecting civil service stickiness (slower adjustment)
 
-#### FR-LBR-002: Job Acceptance
+#### FR-LBR-002: Job Acceptance and Inter-Sector Mobility
 - Households must have a reservation wage (minimum acceptable) that varies by class
 - Households must prefer higher-paying jobs
-- Workers must be able to move between sectors over time
+- Unemployed workers must be available to any sector immediately
+- Employed workers must search for better-paying jobs with some probability each tick (on-the-job search; Caiani et al. 2016) and switch if they find a higher-wage offer in another sector
+- Inter-sector mobility must be governed by a sector-pair mobility matrix reflecting skills transferability (Artuc et al. 2010): some transitions are easier (manufacturing → construction) than others (agriculture → services). Mobility parameters must be loaded from data files.
+- Workers switching sectors must experience a productivity penalty during a transition period of 1-2 ticks (retraining/relocation; Dawid et al. 2019), reflecting sector-specific human capital (Dix-Carneiro 2014)
+- Sector-pair mobility parameters, on-the-job search probability, and transition productivity penalty must be loaded from data files
 
 #### FR-LBR-003: Unemployment
 - Unemployment must emerge naturally when firms don't post enough jobs or wages are below reservation wages
@@ -213,15 +222,17 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 #### FR-INV-001: Public Investment
 - Infrastructure spending must increase productive capacity over time
 - Public services spending must increase labor productivity over time
-- Public capital must depreciate and require maintenance
+- Public capital must depreciate using geometric depreciation: `K(t+1) = K(t) × (1 - δ) + I(t)`, where δ is the per-category depreciation rate from data files and I(t) is new public investment (Godley & Lavoie 2012)
 
 #### FR-INV-002: Private Investment
 - Firms must invest in capital goods to maintain/expand capacity
 - Investment must be funded from retained profits and/or bank loans
 - Capital goods must be produced by the manufacturing sector (enters sector demand via the Leontief I-O matrix; see ADR-0009)
-- Capital must depreciate over time
+- Private capital must depreciate using geometric depreciation: `K(t+1) = K(t) × (1 - δ) + I(t)`, where δ is the per-sector `capitalDepreciationRate` from sectors.json and I(t) is new private investment (Godley & Lavoie 2012)
 
 ### 2.8 Time and Lags
+
+Where a lag is specified as a range (e.g., 1-2 ticks), the actual value for each instance must be drawn uniformly from [min, max] using the seeded `IRandom` interface. Min and max values are stored in data files and are moddable.
 
 #### FR-TIM-001: Policy Lags
 - Tax rate changes must take effect after 1 tick

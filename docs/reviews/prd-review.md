@@ -79,35 +79,45 @@ No FR for fixed-proportion production or inter-sector I-O matrix.
 ### ~~G2: Seller's inflation / supply-side markup pressure (same as C2/S2)~~ ✅ Resolved
 No FR for the supply pressure mechanism from ADR-0010.
 
-### G3: Government spending cannot be financially constrained
+### ~~G3: Government spending cannot be financially constrained~~ ✅ Resolved
 Critical MMT invariant (ECONOMIC-MODEL SS133-135). Spending must never be rejected based on Treasury balance.
+- **Resolution:** PRD FR-AGT-001a adds INV-GOV-001 (line 85): no financial constraint on spending.
 
-### G4: No sovereign default on domestic-currency bonds
+### ~~G4: No sovereign default on domestic-currency bonds~~ ✅ Resolved
 Government must always pay bond interest/principal regardless of Treasury balance.
+- **Resolution:** PRD FR-AGT-001a adds INV-GOV-002 (line 86): no sovereign default.
 
-### G5: Overlapping policy change behavior (replace model)
+### ~~G5: Overlapping policy change behavior (replace model)~~ ✅ Resolved
 ADR-0002 decides replace-and-reset for duplicate in-pipeline changes. PRD is silent.
+- **Resolution:** PRD FR-TIM-001 (line 232) explicitly references ADR-0002 replace-and-reset behavior.
 
-### G6: Deterministic simulation given same seed + inputs
+### ~~G6: Deterministic simulation given same seed + inputs~~ ✅ Resolved
 Load-bearing for SFC replay recovery (ADR-0004) and future save/load (ADR-0006). Currently only mentioned as a test concern in NFR-CQA-002, not as a simulation-engine requirement.
+- **Resolution:** PRD NFR-CQA-002 (line 417) requires seeded IRandom for deterministic replay.
 
-### G7: Policy input log recording
+### ~~G7: Policy input log recording~~ ✅ Resolved
 Required by ADR-0004 (SFC error recovery) and ADR-0006 (replay-based save/load). No FR exists.
+- **Resolution:** PRD NFR-CQA-002 (line 418) requires policy input log recording.
 
-### G8: Inventory rationing when demand exceeds supply
+### ~~G8: Inventory rationing when demand exceeds supply~~ ✅ Resolved
 ECONOMIC-MODEL SS411-413 describes rationing. PRD only says "hold inventory of unsold goods."
+- **Resolution:** PRD FR-PRC-003 (line 149) explicitly requires rationing when demand exceeds supply.
 
-### G9: AIDS parameter constraint validation
+### ~~G9: AIDS parameter constraint validation~~ ✅ Resolved
 Adding-up, homogeneity, symmetry constraints (ECONOMIC-MODEL SS375-381, ARCHITECTURE SS3.13) need explicit validation beyond generic schema checks.
+- **Resolution:** PRD FR-AGT-004 (line 113) requires adding-up, homogeneity, and symmetry validation on load.
 
-### G10: Disposable income definition for AIDS
+### ~~G10: Disposable income definition for AIDS~~ ✅ Resolved
 ECONOMIC-MODEL SS369 defines it as "post-tax income + available credit - debt service." PRD never specifies what income feeds into AIDS.
+- **Resolution:** PRD FR-AGT-004 (line 112) defines disposable income as post-tax income + available credit - debt service.
 
-### G11: Government wage behavior (civil service stickiness)
+### ~~G11: Government wage behavior (civil service stickiness)~~ ✅ Resolved
 ECONOMIC-MODEL SS148, SS429-431 specifies slower wage adjustment via stickiness parameter. PRD only says "compete in the labor market."
+- **Resolution:** PRD FR-AGT-001 (line 76) requires data-driven pay scale with civil service stickiness.
 
-### G12: Government procurement-to-sector demand mapping as data-driven
+### ~~G12: Government procurement-to-sector demand mapping as data-driven~~ ✅ Resolved
 Needed for testability and modding. PRD mentions procurement at high level only.
+- **Resolution:** PRD FR-AGT-001 (line 77) and FR-CTL-001 (line 250) specify procurement-to-sector mapping with explicit demand channels.
 
 ---
 
@@ -128,7 +138,7 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 
 | ID | Requirement | Issue |
 |---|---|---|
-| A7 | FR-AGT-003 / Section 5 | Plural "Commercial Banks" but MVP is single aggregate bank |
+| ~~A7~~ | ~~FR-AGT-003 / Section 5~~ | ~~Plural "Commercial Banks" but MVP is single aggregate bank~~ — ✅ Not a PRD issue; PRD describes full vision, MVP-SCOPE handles simplification |
 | A8 | FR-BND-001 | Auction type unspecified (uniform price? discriminatory?) |
 | A9 | FR-BND-002 | Bond maturity length unspecified |
 | A10 | FR-BNK-002 | No DTI thresholds, collateral haircuts, or approval criteria |
@@ -165,12 +175,12 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 - ~~C2/S2/G2: Add seller's inflation requirement per ADR-0010~~ ✅
 - ~~C3: Add asymmetric markup adjustment per ADR-0010~~ ✅
 - ~~C7/S5/G1: Add Leontief I-O production function requirement per ADR-0009~~ ✅
-- G3/G4: Add MMT invariants (no financial constraint on spending, no sovereign default)
+- ~~G3/G4: Add MMT invariants (no financial constraint on spending, no sovereign default)~~ ✅
 - ~~S3/S4: "goods" to "sectors" (trivial fix)~~ ✅
 
 ### Medium (important for implementation clarity)
-- G5-G7: Policy replacement, deterministic simulation, input log
-- G8-G12: Rationing, AIDS validation, disposable income, gov wages, procurement mapping
+- ~~G5-G7: Policy replacement, deterministic simulation, input log~~ ✅
+- ~~G8-G12: Rationing, AIDS validation, disposable income, gov wages, procurement mapping~~ ✅
 - A15-A17: Internal contradictions
 - C4-C6: ECONOMIC-MODEL.md cross-doc fixes
 
