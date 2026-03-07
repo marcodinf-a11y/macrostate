@@ -284,6 +284,29 @@ Where:
 - When demand ~ capacity: markup at base level
 - When demand > capacity (overheating): markup increases (sellers have pricing power)
 
+**Markup adjustment asymmetry:**
+Markups adjust at different speeds in each direction:
+- Upward: fast — firms exploit pricing power quickly (e.g., speed factor 0.5)
+- Downward: slow — firms resist margin compression (e.g., speed factor 0.1)
+
+This mirrors the existing downward wage rigidity. Per-sector parameters (`markupUpwardSpeed`, `markupDownwardSpeed`) loaded from sectors.json.
+
+### Supply-Side Markup Pressure (Seller's Inflation)
+
+When input availability drops (e.g., material shortage from another sector), firms with constrained supply can raise markups independently of demand:
+
+```
+Supply pressure factor = Normal input availability / Actual input availability
+```
+
+When supply pressure > 1, it multiplies the markup alongside the demand factor:
+
+```
+Markup = Base markup × Demand adjustment × Supply pressure factor
+```
+
+This models seller's inflation (Weber/Wasner 2023): firms use supply scarcity as cover to widen margins even without excess demand. The supply pressure factor uses the same asymmetric adjustment speeds — it ratchets up fast but decays slowly as supply normalizes.
+
 ### Three Buffers Against Inflation
 
 Higher wages do NOT automatically cause inflation. Three mechanisms absorb wage increases before prices must rise:
