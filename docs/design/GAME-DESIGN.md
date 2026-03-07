@@ -130,13 +130,14 @@ In later versions, these groups evolve into individual agents with heterogeneous
 
 ### Production
 
-Each firm type uses a different mix of inputs:
+Each sector uses fixed-proportion inputs (Leontief production function) — inputs cannot substitute for one another. Inter-sector linkages create supply chain dynamics:
 
 | Sector | Primary inputs | Output |
 |---|---|---|
-| Agriculture | Labor, land | Food, raw materials |
-| Industry | Labor, raw materials, capital | Manufactured goods, capital goods |
-| Services | Labor, capital | Services |
+| Agriculture & Primary | Labor, land | Food, raw materials |
+| Manufacturing | Labor, raw materials, capital goods | Manufactured goods, capital goods |
+| Construction | Labor, manufactured materials, capital goods | Built structures, infrastructure |
+| Services | Labor, capital goods | Services (retail, transport, healthcare, etc.) |
 
 ## Map & Visuals
 

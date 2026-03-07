@@ -1,7 +1,7 @@
 # UI Testing Roadmap
 
 **Status:** Future side project — not required for MVP
-**Context:** L3 in `docs/reviews/consistency.md`
+**Context:** ADR-0007 (manual UI testing with scoped testability contract)
 
 ## Current State (MVP)
 
@@ -112,4 +112,4 @@ This is a side project, not a prerequisite for MVP. Rough breakdown:
 - [Godot headless mode](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_dedicated_servers.html)
 - [barichello/godot-ci Docker image](https://github.com/abarichello/godot-ci)
 - Architecture Section 5: `Game.Tests.csproj` (deferred per M9)
-- Consistency review L3: `docs/reviews/consistency.md`
+- ADR-0007: Manual UI testing with scoped testability contract

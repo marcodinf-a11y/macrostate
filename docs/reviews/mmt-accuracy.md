@@ -1,7 +1,7 @@
 # MMT Accuracy Review
 
 **Date:** 2026-03-02
-**Documents reviewed:** PRD.md, ARCHITECTURE.md, IMPLEMENTATION-PLAN.md, ECONOMIC-MODEL.md, DESIGN.md, REVIEW-consistency.md
+**Documents reviewed:** PRD.md, ARCHITECTURE.md, IMPLEMENTATION-PLAN.md, ECONOMIC-MODEL.md, DESIGN.md
 **References:** Wray (2015) *Modern Money Theory*, Mitchell/Wray/Watts (2019) *Macroeconomics*, Mosler (1995/2010), Godley/Lavoie (2012) *Monetary Economics*, Kelton (2020) *The Deficit Myth*, Tcherneva (2020) *The Case for a Job Guarantee*, Weber/Wasner (2023), Bank of England (2014)
 **Purpose:** Verify that the game's economic model accurately represents MMT and post-Keynesian economics. Identify inaccuracies, missing mechanics, and framing issues.
 
@@ -375,14 +375,13 @@ All firms are described as "profit-driven." This excludes public enterprises, no
 | F14 | Low | "Government balance" parenthetical frames deficit as negative | **Resolved** — reframed as "net currency creation / net currency withdrawal" |
 | F15 | Low | Profit-driven firms only | Post-MVP |
 
-## Cross-References to Existing Review
+## Cross-References to ADRs
 
-Several findings from REVIEW-consistency.md are reinforced or reframed by this audit:
+Several findings from this audit informed Architecture Decision Records:
 
-| Consistency Finding | MMT Audit Relevance |
+| Finding | Related ADR |
 |---|---|
-| C4 (Policy lag system) | Policy lags are important to MMT (real-world institutional constraints). The lag system architecture gap remains. |
-| C5 (Investment absent from Architecture) | Investment mechanics are important AND must follow post-Keynesian causation (F7). |
-| C6 (Three inflation buffers) | Confirmed as core MMT mechanism. Must also add seller's inflation (F4). |
-| M6 (FR-SIM-002 oversimplifies circuit access) | Resolved by C2 fix. Banks correctly bridge both circuits. |
-| M7 (Bond yields without secondary market) | Acceptable for MVP. "Average coupon rate" is the honest label. |
+| F3 (Leontief production function) | ADR-0009: Leontief I-O production function |
+| F4 (Seller's inflation) | ADR-0010: Asymmetric markup adjustment and seller's inflation |
+| F5 (Bond yields definition) | ADR-0008: Bond yields as weighted average coupon rate |
+| F7 (Saving-investment causation) | Resolved in ECONOMIC-MODEL.md; no separate ADR needed |

@@ -944,7 +944,6 @@ game/
 │   │   ├── CONSOLE.md
 │   │   └── MODDING.md
 │   └── reviews/
-│       ├── consistency.md
 │       └── mmt-accuracy.md
 │
 └── mods/                             # Mod directory (empty in base game)

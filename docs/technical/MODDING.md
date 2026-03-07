@@ -18,8 +18,8 @@ Modders create JSON files that override or extend base game data. No code requir
 **What can be modded via data:**
 - Economic parameters (tax rates, markup rates, wage floors, etc.)
 - Sector definitions (new sectors, modified production chains)
-- Goods and resources (new goods types, modified properties)
-- Household class definitions (new classes, modified needs hierarchies)
+- Consumption parameters (AIDS alpha, beta, gamma per household class)
+- Household class definitions (new classes, modified behavior parameters)
 - Scenario definitions (new scenarios with custom objectives and fail conditions)
 - Agent behavior parameters (consumption propensities, investment thresholds, etc.)
 - Map data (provinces, resources, terrain)
@@ -62,7 +62,7 @@ mods/
     ├── mod.json              # Mod manifest (required)
     ├── data/                 # Data overrides (Tier 1)
     │   ├── sectors.json      # Override/extend sector definitions
-    │   ├── goods.json        # Override/extend goods
+    │   ├── consumption.json  # Override AIDS parameters per household class
     │   ├── scenarios/        # New scenarios
     │   │   └── my-scenario.json
     │   └── ...
@@ -123,9 +123,9 @@ The base game is structured as data files that the mod system can override:
 data/
 └── base/
     ├── economy/
-    │   ├── sectors.json          # Sector definitions (agriculture, industry, services)
-    │   ├── goods.json            # Goods and resource definitions
-    │   ├── production.json       # Production chains (inputs → outputs per sector)
+    │   ├── sectors.json          # Sector definitions (4 MVP sectors)
+    │   ├── consumption.json      # AIDS parameters per household class
+    │   ├── production.json       # Leontief input-output coefficients per sector
     │   └── parameters.json       # Global economic parameters
     ├── agents/
     │   ├── households.json       # Household class definitions and behavior parameters
@@ -149,40 +149,45 @@ data/
   "sectors": [
     {
       "id": "agriculture",
-      "name": "Agriculture",
+      "name": "Agriculture & Primary",
       "description": "Produces food and raw materials",
-      "inputs": [
-        { "resource": "labor", "weight": 0.7 },
-        { "resource": "land", "weight": 0.3 }
-      ],
-      "outputs": [
-        { "good": "food", "category": "survival" },
-        { "good": "raw_materials", "category": "intermediate" }
-      ],
+      "inputCoefficients": {
+        "labor": 0.60,
+        "agriculture": 0.0,
+        "manufacturing": 0.05,
+        "construction": 0.0,
+        "services": 0.05
+      },
       "baseMarkup": 0.15,
+      "minimumMarkup": 0.05,
+      "markupUpwardSpeed": 0.5,
+      "markupDownwardSpeed": 0.1,
       "baseProductivity": 1.0,
-      "capitalDepreciationRate": 0.02
+      "capitalDepreciationRate": 0.003
     },
     {
-      "id": "industry",
-      "name": "Industry",
+      "id": "manufacturing",
+      "name": "Manufacturing",
       "description": "Produces manufactured goods and capital goods",
-      "inputs": [
-        { "resource": "labor", "weight": 0.4 },
-        { "resource": "raw_materials", "weight": 0.3 },
-        { "resource": "capital_goods", "weight": 0.3 }
-      ],
-      "outputs": [
-        { "good": "manufactured_goods", "category": "comfort" },
-        { "good": "capital_goods", "category": "investment" }
-      ],
+      "inputCoefficients": {
+        "labor": 0.40,
+        "agriculture": 0.20,
+        "manufacturing": 0.10,
+        "construction": 0.0,
+        "services": 0.05
+      },
       "baseMarkup": 0.20,
+      "minimumMarkup": 0.08,
+      "markupUpwardSpeed": 0.5,
+      "markupDownwardSpeed": 0.1,
       "baseProductivity": 1.0,
-      "capitalDepreciationRate": 0.03
+      "capitalDepreciationRate": 0.007
     }
   ]
 }
 ```
+
+Input coefficients are Leontief technical coefficients (fixed proportions), not Cobb-Douglas exponents. See ECONOMIC-MODEL.md for the full inter-sector input-output matrix.
 
 ### Example: `households.json`
 
@@ -193,12 +198,6 @@ data/
       "id": "low_income",
       "name": "Low Income",
       "populationShare": 0.40,
-      "needs": [
-        { "good": "food", "priority": 1, "monthlyUnits": 10, "elasticity": 0.1 },
-        { "good": "housing", "priority": 2, "monthlyUnits": 1, "elasticity": 0.2 },
-        { "good": "manufactured_goods", "priority": 3, "monthlyUnits": 2, "elasticity": 0.7 },
-        { "good": "services", "priority": 4, "monthlyUnits": 1, "elasticity": 0.9 }
-      ],
       "reservationWageMultiplier": 0.7,
       "maxDebtToIncomeRatio": 0.5,
       "savingsTargetMonths": 1
@@ -207,6 +206,8 @@ data/
 }
 ```
 
+Consumption behavior is defined separately in `consumption.json` using the AIDS (Almost Ideal Demand System) model — budget shares across sectors are determined by income and prices, not by a hierarchical needs list. See ECONOMIC-MODEL.md for the AIDS specification.
+
 ## Data Override Mechanics
 
 ### Merge Strategies
@@ -214,7 +215,7 @@ data/
 When a mod provides a data file, it is merged with the base (or previous mod's) data:
 
 - **Replace**: the mod's value completely replaces the base value
-- **Extend**: the mod adds new entries to a list (e.g., new sectors, new goods)
+- **Extend**: the mod adds new entries to a list (e.g., new sectors, new scenarios)
 - **Patch**: the mod modifies specific fields of existing entries
 
 Each data file specifies its merge strategy:
@@ -275,7 +276,7 @@ The plugin API will provide these hook points:
 
 ### Extension Points
 - `RegisterSector(SectorDefinition)` — add new economic sectors
-- `RegisterGood(GoodDefinition)` — add new goods/resources
+- `RegisterConsumptionParameters(ConsumptionParameterSet)` — add AIDS parameter sets for new household classes
 - `RegisterAgentType(AgentTypeDefinition)` — add new agent types
 - `RegisterPolicy(PolicyDefinition)` — add new player policy levers
 - `RegisterScenario(ScenarioDefinition)` — add new scenarios
