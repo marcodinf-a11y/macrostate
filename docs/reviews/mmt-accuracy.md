@@ -363,7 +363,7 @@ All firms are described as "profit-driven." This excludes public enterprises, no
 | F2 | Critical | Government must not have financial spending constraint | **Resolved** — critical design rule added to ECONOMIC-MODEL.md and ARCHITECTURE.md |
 | F3 | Critical | Production function undefined — must be Leontief | **Resolved** — Leontief I-O production function added to ECONOMIC-MODEL.md |
 | F4 | Medium | Missing seller's inflation / profit-push mechanism | **Resolved** — asymmetric markup adjustment + supply-side markup pressure added to ECONOMIC-MODEL.md |
-| F5 | Medium | Debt-to-GDP framing embeds mainstream assumptions | Fix: add companion indicator, neutral renaming |
+| F5 | Medium | Debt-to-GDP framing embeds mainstream assumptions | **Resolved** — renamed to "Government bonds outstanding / GDP", added "Private sector net financial assets" companion, neutral government balance framing |
 | F6 | Medium | Missing: government cannot default on own currency | Fix: add explicit statement |
 | F7 | Medium | Saving-investment causation direction ambiguous | Fix: reframe investment funding section |
 | F8 | Medium | No mechanism for central bank reserve provision | Fix: add reserve provision to CB actions |
@@ -372,7 +372,7 @@ All firms are described as "profit-driven." This excludes public enterprises, no
 | F11 | Low | Fixed population limits resource constraint demo | Post-MVP |
 | F12 | Low | No currency demand mechanism (Chartalism) | Post-MVP; add note |
 | F13 | Low | No automatic stabilizers (JG) in MVP | Post-MVP; already planned |
-| F14 | Low | "Government balance" parenthetical frames deficit as negative | Fix: neutral reframing |
+| F14 | Low | "Government balance" parenthetical frames deficit as negative | **Resolved** — reframed as "net currency creation / net currency withdrawal" |
 | F15 | Low | Profit-driven firms only | Post-MVP |
 
 ## Cross-References to Existing Review

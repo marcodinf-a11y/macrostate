@@ -634,9 +634,10 @@ These are tracked and displayed to the player:
 | **Public sector employment share** | Public sector workers / Total employed workers |
 | **Inflation rate** | % change in average price level from previous period |
 | **GDP (Output)** | Total value of goods and services produced |
-| **Government balance** | Spending - Tax revenue (negative = deficit) |
+| **Government balance** | Spending - Tax revenue (positive = net currency creation, negative = net currency withdrawal) |
 | **Private sector balance** | Total private income - Total private spending - Taxes |
-| **Debt-to-GDP ratio** | Total government bonds outstanding / GDP |
+| **Private sector net financial assets** | Total government bonds held by private sector + net deposits (mirror image of government bonds outstanding) |
+| **Government bonds outstanding / GDP** | Total government bonds outstanding / GDP |
 | **Capacity utilization** | Actual output / Maximum possible output (per sector) |
 | **Unit labor costs** | Wages / Productivity (per sector) |
 | **Private debt level** | Total household + firm loans outstanding |
