@@ -92,7 +92,7 @@ This is the heart of the game. It contains all economic logic, agent behavior, a
 **Markets**
 - Labor market: wage posting (firms + government), job matching
 - Goods market: AIDS-driven demand + government procurement, selling, inventory
-- Bond market: auction mechanism, bidding
+- Bond market: auction mechanism, bidding (per [ADR-0003](../decisions/ADR-0003-banks-only-bond-auctions.md))
 
 **Data Layer**
 - JSON file loading and parsing
@@ -632,7 +632,7 @@ public interface IRandom
 
 ### 3.13 Consumption Engine (AIDS)
 
-The `ConsumptionEngine` implements the Almost Ideal Demand System (Deaton & Muellbauer, 1980) for household consumption. It determines how each household class allocates its budget across production sectors based on current prices and real income.
+The `ConsumptionEngine` implements the Almost Ideal Demand System (Deaton & Muellbauer, 1980) for household consumption (per [ADR-0005](../decisions/ADR-0005-aids-consumption-model.md)). It determines how each household class allocates its budget across production sectors based on current prices and real income.
 
 ```csharp
 public interface IConsumptionEngine
@@ -874,7 +874,7 @@ game/
 │   │   │   └── BondMarket.cs         # Bond auction
 │   │   ├── Economics/
 │   │   │   ├── PricingEngine.cs      # Cost-plus markup calculation
-│   │   │   ├── ProductionEngine.cs   # Production function
+│   │   │   ├── ProductionEngine.cs   # Leontief I-O production function (ADR-0009)
 │   │   │   ├── InvestmentEngine.cs   # Public/private investment and depreciation
 │   │   │   ├── ConsumptionEngine.cs  # AIDS demand system
 │   │   │   └── IndicatorCalculator.cs # GDP, inflation, etc.
@@ -1051,7 +1051,7 @@ Code defines:  "A Firm has inputs, outputs, a markup, and produces goods"
 Data defines:  "Agriculture takes labor+land, outputs food, has 15% markup"
 ```
 
-This means mods can add new sectors, goods, and household classes without touching code (Tier 1 modding).
+This means mods can add new sectors (and sub-sectors), household classes, and economic parameters without touching code (Tier 1 modding).
 
 ### 6.5 Dependency Injection for Testability
 

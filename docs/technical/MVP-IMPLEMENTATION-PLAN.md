@@ -126,12 +126,15 @@ Phase 15: Balancing & Polish
 16. `DataValidator_InvalidSectorData_ReturnsErrors`
 17. `DataValidator_ValidFullDataset_ReturnsSuccess`
 18. `DataModels_RoundTrip_SerializeDeserializeMatch`
+19. `FrMod002_AidsAddingUpViolation_ValidationError` — SUM(alpha)!=1 or SUM(beta)!=0 rejected
+20. `FrMod002_AidsHomogeneityViolation_ValidationError` — SUM_j(gamma_ij)!=0 rejected
+21. `FrMod002_AidsSymmetryViolation_ValidationError` — gamma_ij!=gamma_ji rejected
 
 **GREEN — implement to make tests pass:**
 1. Define data model classes: `SectorData`, `ConsumptionData`, `HouseholdData`, `FirmData`, `BankData`, `GovernmentData` (including `GovernmentDemandData`), `ProductionData`, `ParametersData`, `SimulationConfigData`, `ScenarioData`
 2. Implement `IDataProvider` interface
 3. Implement `JsonDataProvider` — load JSON from disk, deserialize to data model classes, resolve paths through `data/base/`
-4. Implement `IDataValidator` interface and `DataValidator` — validate required fields, value ranges, referential integrity between data files
+4. Implement `IDataValidator` interface and `DataValidator` — validate required fields, value ranges, referential integrity between data files, and AIDS parameter constraints (adding-up, homogeneity, symmetry per PRD FR-AGT-004)
 5. Complete `InMemoryDataProvider` — register data objects in memory, return on request
 6. Create all `data/base/` JSON files:
    - `economy/sectors.json`, `economy/consumption.json`, `economy/production.json`, `economy/parameters.json`
@@ -148,7 +151,7 @@ Phase 15: Balancing & Polish
 
 **Dependencies:** Phase 0
 
-**Definition of done:** All 18 tests pass. Base game data files exist and validate. Test fixtures exist for all categories. `InMemoryDataProvider` is fully functional (completing the Phase 0 skeleton). `TestDataBuilder` has builder methods for all data model classes defined in this phase.
+**Definition of done:** All 21 tests pass. Base game data files exist and validate. Test fixtures exist for all categories. `InMemoryDataProvider` is fully functional (completing the Phase 0 skeleton). `TestDataBuilder` has builder methods for all data model classes defined in this phase.
 
 ---
 

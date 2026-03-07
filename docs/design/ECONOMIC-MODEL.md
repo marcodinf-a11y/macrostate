@@ -136,6 +136,8 @@ The currency-issuing sovereign. The player controls this sector.
 >
 > **Political constraints** (debt ceilings, balanced budget rules) are self-imposed policy choices, not operational limits. These are modeled in the policy constraint layer, not in the engine. See GAME-DESIGN.md Section 5.
 
+> **Note:** Government spending and bank lending are both sources of endogenous money creation. Government creates currency (reserves + deposits) by crediting bank reserve accounts; banks create currency (deposits only) by issuing loans. See [Bank Credit Creation](#bank-credit-creation-endogenous-money) for the private-sector channel.
+
 **Actions:**
 - Spend money (creates currency) allocated to: infrastructure, public services, direct transfers
 - Collect taxes (destroys currency)
@@ -319,6 +321,8 @@ When input availability drops (e.g., material shortage from another sector), fir
 ```
 Supply pressure factor = Normal input availability / Actual input availability
 ```
+
+"Normal input availability" is the previous period's value (t-1), following the standard SFC convention (Godley & Lavoie 2012). This requires no extra parameters and naturally adapts if supply conditions permanently shift.
 
 When supply pressure > 1, it multiplies the markup alongside the demand factor:
 

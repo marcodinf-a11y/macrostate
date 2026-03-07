@@ -28,17 +28,17 @@ The MVP implements the full economic model with these simplifications:
 
 | Aspect | MVP simplification | Full vision | Reference |
 |---|---|---|---|
-| Household classes | 3 fixed classes | 5+ classes or continuous spectrum | [ECONOMIC-MODEL.md](../design/ECONOMIC-MODEL.md) Households |
-| Sector granularity | 4 top-level sectors | Sub-sector hierarchy (8-15 sectors) via parentId | [ECONOMIC-MODEL.md](../design/ECONOMIC-MODEL.md) Firms |
-| Foreign sector | None (closed economy) | Multiple AI nations with trade | [ECONOMIC-MODEL.md](../design/ECONOMIC-MODEL.md) SFC Framework |
-| Bank competition | Single aggregate bank | Multiple competing banks | [ARCHITECTURE.md](../technical/ARCHITECTURE.md) Banking |
-| Bond secondary market | No resale | Full secondary market | [ECONOMIC-MODEL.md](../design/ECONOMIC-MODEL.md) Bonds |
-| Central bank policy rate | Fixed at 0 | Player-adjustable or rule-based | [ECONOMIC-MODEL.md](../design/ECONOMIC-MODEL.md) Central Bank |
+| Household classes | 3 fixed classes | 5+ classes or continuous spectrum | [ECONOMIC-MODEL.md § Households](../design/ECONOMIC-MODEL.md#households) |
+| Sector granularity | 4 top-level sectors | Sub-sector hierarchy (8-15 sectors) via parentId | [ECONOMIC-MODEL.md § Firms](../design/ECONOMIC-MODEL.md#firms-4-sectors) |
+| Foreign sector | None (closed economy) | Multiple AI nations with trade | [ECONOMIC-MODEL.md § SFC](../design/ECONOMIC-MODEL.md#foundational-framework-stock-flow-consistency-sfc) |
+| Bank competition | Single aggregate bank | Multiple competing banks | [ARCHITECTURE.md § Agent Interfaces](../technical/ARCHITECTURE.md#33-agent-interfaces) |
+| Bond secondary market | No resale | Full secondary market | [ECONOMIC-MODEL.md § Bonds](../design/ECONOMIC-MODEL.md#government-bonds-auction-based) |
+| Central bank policy rate | Fixed at 0 | Player-adjustable or rule-based | [ECONOMIC-MODEL.md § Central Bank](../design/ECONOMIC-MODEL.md#central-bank) |
 | Provinces | Single province | Multiple geographic provinces | [GAME-DESIGN.md](../design/GAME-DESIGN.md) Map |
-| Firm heterogeneity | One representative firm per sector | Multiple competing firms per sector | [ECONOMIC-MODEL.md](../design/ECONOMIC-MODEL.md) Firms |
-| Wage negotiation | Simple posting/acceptance | Collective bargaining, contracts | [ECONOMIC-MODEL.md](../design/ECONOMIC-MODEL.md) Labor Market |
+| Firm heterogeneity | One representative firm per sector | Multiple competing firms per sector | [ECONOMIC-MODEL.md § Firms](../design/ECONOMIC-MODEL.md#firms-4-sectors) |
+| Wage negotiation | Simple posting/acceptance | Collective bargaining, contracts | [ECONOMIC-MODEL.md § Labor Market](../design/ECONOMIC-MODEL.md#labor-market-wage-posting) |
 | Government spending types | 3 (infrastructure, services, transfers) | More granular spending categories | [PRD.md](PRD.md) FR-CTL-001 |
-| AIDS parameters | US-based estimates | Country-specific parameter sets | [ECONOMIC-MODEL.md](../design/ECONOMIC-MODEL.md) AIDS |
+| AIDS parameters | US-based estimates | Country-specific parameter sets | [ECONOMIC-MODEL.md § AIDS](../design/ECONOMIC-MODEL.md#consumption-model-almost-ideal-demand-system-aids) |
 | Currency demand | Implicit — single currency, no alternative exists | Explicit tax-driven currency demand for exchange rate dynamics | [ECONOMIC-MODEL.md](../design/ECONOMIC-MODEL.md) |
 | Map | Cosmetic single-province map | Geographic gameplay with provinces and resources | [PRD.md](PRD.md) FR-UI-005 |
 
