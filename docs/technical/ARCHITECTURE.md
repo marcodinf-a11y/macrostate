@@ -798,6 +798,8 @@ game/
 │   │   │   └── SfcChecker.cs         # Consistency validation
 │   │   ├── Agents/
 │   │   │   ├── IAgent.cs             # Agent interface
+│   │   │   ├── IAgentRegistry.cs     # Agent lookup and iteration interface
+│   │   │   ├── AgentRegistry.cs      # Agent registry implementation
 │   │   │   ├── Government.cs
 │   │   │   ├── CentralBank.cs
 │   │   │   ├── CommercialBank.cs

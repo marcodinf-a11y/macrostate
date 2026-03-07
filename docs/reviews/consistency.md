@@ -420,13 +420,15 @@ The PRD's own test coverage mapping table (Section 2.14) also omits these groups
 
 ---
 
-### L4. IAgentRegistry Interface Not Defined
+### ~~L4. IAgentRegistry Interface Not Defined~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
 | Documents | ARCHITECTURE (6.5), IMPLEMENTATION-PLAN (Phase 3) |
 
 Architecture 6.5 lists `IAgentRegistry` as a core injectable dependency. Phase 3 builds a concrete `AgentRegistry` class but never defines the `IAgentRegistry` interface. The dependency injection pattern requires the interface form for test substitution.
+
+**Resolution:** Added `IAgentRegistry.cs` and `AgentRegistry.cs` to Architecture Section 5 project structure under `Agents/`. Added `IAgentRegistry` interface definition as Phase 3 GREEN step 7 (before the `AgentRegistry` implementation step). Renumbered subsequent steps.
 
 ---
 

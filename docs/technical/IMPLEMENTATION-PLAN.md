@@ -221,11 +221,12 @@ Phase 15: Balancing & Polish
 4. Implement `CommercialBank` agent (reserves, deposits, loans, bonds, equity — from `IDataProvider`)
 5. Implement `Household` agent (class id, population, deposits, debts, employment status, reservation wage — from `IDataProvider`)
 6. Implement `Firm` agent (sector id, deposits, capital, employees, inventory, wage, price, productivity — from `IDataProvider`)
-7. Implement `AgentRegistry` — stores and retrieves agents by type/id
-8. Wire agents to accounting system (each agent owns accounts in the ledger)
-9. Define `IGovernmentState`, `ICentralBankState`, `IBankingState` interfaces (Architecture §3.3)
-10. Define `IFirmSectorState`, `IHouseholdClassState` as base interfaces; make `IFirm : IFirmSectorState`, `IHouseholdClass : IHouseholdClassState`
-11. Define `IEconomicIndicators` interface (implementation deferred to Phase 7/8 when indicator calculation is built)
+7. Define `IAgentRegistry` interface (agent lookup by type/id, iteration) — the interface form listed in Architecture §6.5
+8. Implement `AgentRegistry` — stores and retrieves agents by type/id
+9. Wire agents to accounting system (each agent owns accounts in the ledger)
+10. Define `IGovernmentState`, `ICentralBankState`, `IBankingState` interfaces (Architecture §3.3)
+11. Define `IFirmSectorState`, `IHouseholdClassState` as base interfaces; make `IFirm : IFirmSectorState`, `IHouseholdClass : IHouseholdClassState`
+12. Define `IEconomicIndicators` interface (implementation deferred to Phase 7/8 when indicator calculation is built)
 
 **REFACTOR:** Extract common agent initialization patterns.
 
