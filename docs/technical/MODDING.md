@@ -123,9 +123,8 @@ The base game is structured as data files that the mod system can override:
 data/
 └── base/
     ├── economy/
-    │   ├── sectors.json          # Sector definitions
-    │   ├── consumption.json      # AIDS parameters per household class
-    │   ├── production.json       # Leontief input-output coefficients per sector
+    │   ├── sectors.json          # Sector definitions (includes Leontief I-O coefficients, markup, wage, and depreciation parameters)
+    │   ├── consumption.json      # AIDS parameters per household class (alpha, beta, gamma)
     │   └── parameters.json       # Global economic parameters
     ├── agents/
     │   ├── households.json       # Household class definitions and behavior parameters
@@ -162,8 +161,13 @@ data/
       "minimumMarkup": 0.05,
       "markupUpwardSpeed": 0.5,
       "markupDownwardSpeed": 0.1,
+      "targetInventoryRatio": 0.20,
       "baseProductivity": 1.0,
-      "capitalDepreciationRate": 0.003
+      "capitalDepreciationRate": 0.003,
+      "wageAutonomousGrowth": 0.005,
+      "wageProductivityPassthrough": 0.8,
+      "wageUnemploymentSensitivity": 0.3,
+      "wageInflationCatchup": 0.6
     },
     {
       "id": "manufacturing",
@@ -180,10 +184,22 @@ data/
       "minimumMarkup": 0.08,
       "markupUpwardSpeed": 0.5,
       "markupDownwardSpeed": 0.1,
+      "targetInventoryRatio": 0.15,
       "baseProductivity": 1.0,
-      "capitalDepreciationRate": 0.007
+      "capitalDepreciationRate": 0.007,
+      "wageAutonomousGrowth": 0.005,
+      "wageProductivityPassthrough": 0.8,
+      "wageUnemploymentSensitivity": 0.3,
+      "wageInflationCatchup": 0.6
     }
-  ]
+  ],
+  "mobilityMatrix": {
+    "agriculture":    { "agriculture": 1.0, "manufacturing": 0.3, "construction": 0.4, "services": 0.2 },
+    "manufacturing":  { "agriculture": 0.3, "manufacturing": 1.0, "construction": 0.7, "services": 0.4 },
+    "construction":   { "agriculture": 0.4, "manufacturing": 0.7, "construction": 1.0, "services": 0.3 },
+    "services":       { "agriculture": 0.2, "manufacturing": 0.4, "construction": 0.3, "services": 1.0 }
+  },
+  "transitionProductivityPenalty": 0.3
 }
 ```
 
@@ -200,13 +216,85 @@ Input coefficients are Leontief technical coefficients (fixed proportions), not 
       "populationShare": 0.40,
       "reservationWageMultiplier": 0.7,
       "maxDebtToIncomeRatio": 0.5,
-      "savingsTargetMonths": 1
+      "savingsTargetMonths": 1,
+      "jobSearchProbability": 0.10
     }
   ]
 }
 ```
 
 Consumption behavior is defined separately in `consumption.json` using the AIDS (Almost Ideal Demand System) model — budget shares across sectors are determined by income and prices, not by a hierarchical needs list. See ECONOMIC-MODEL.md for the AIDS specification.
+
+### Example: `consumption.json`
+
+```json
+{
+  "classes": {
+    "low_income": {
+      "alpha": {
+        "agriculture": 0.35,
+        "manufacturing": 0.25,
+        "construction": 0.10,
+        "services": 0.30
+      },
+      "beta": {
+        "agriculture": -0.10,
+        "manufacturing": -0.02,
+        "construction": 0.02,
+        "services": 0.10
+      },
+      "gamma": {
+        "agriculture":    { "agriculture": -0.05, "manufacturing":  0.02, "construction":  0.01, "services":  0.02 },
+        "manufacturing":  { "agriculture":  0.02, "manufacturing": -0.04, "construction":  0.01, "services":  0.01 },
+        "construction":   { "agriculture":  0.01, "manufacturing":  0.01, "construction": -0.03, "services":  0.01 },
+        "services":       { "agriculture":  0.02, "manufacturing":  0.01, "construction":  0.01, "services": -0.04 }
+      }
+    },
+    "middle_income": {
+      "alpha": {
+        "agriculture": 0.20,
+        "manufacturing": 0.25,
+        "construction": 0.15,
+        "services": 0.40
+      },
+      "beta": {
+        "agriculture": -0.08,
+        "manufacturing": -0.02,
+        "construction": 0.02,
+        "services": 0.08
+      },
+      "gamma": {
+        "agriculture":    { "agriculture": -0.04, "manufacturing":  0.02, "construction":  0.01, "services":  0.01 },
+        "manufacturing":  { "agriculture":  0.02, "manufacturing": -0.04, "construction":  0.01, "services":  0.01 },
+        "construction":   { "agriculture":  0.01, "manufacturing":  0.01, "construction": -0.03, "services":  0.01 },
+        "services":       { "agriculture":  0.01, "manufacturing":  0.01, "construction":  0.01, "services": -0.03 }
+      }
+    },
+    "high_income": {
+      "alpha": {
+        "agriculture": 0.10,
+        "manufacturing": 0.20,
+        "construction": 0.15,
+        "services": 0.55
+      },
+      "beta": {
+        "agriculture": -0.05,
+        "manufacturing": -0.03,
+        "construction": 0.01,
+        "services": 0.07
+      },
+      "gamma": {
+        "agriculture":    { "agriculture": -0.03, "manufacturing":  0.01, "construction":  0.01, "services":  0.01 },
+        "manufacturing":  { "agriculture":  0.01, "manufacturing": -0.04, "construction":  0.01, "services":  0.02 },
+        "construction":   { "agriculture":  0.01, "manufacturing":  0.01, "construction": -0.03, "services":  0.01 },
+        "services":       { "agriculture":  0.01, "manufacturing":  0.02, "construction":  0.01, "services": -0.04 }
+      }
+    }
+  }
+}
+```
+
+**Constraints (validated on load):** For each class: `alpha` values sum to 1.0, `beta` values sum to 0.0, each `gamma` row sums to 0.0, and the `gamma` matrix is symmetric (`gamma[i][j] == gamma[j][i]`). See ECONOMIC-MODEL.md for the full AIDS specification and constraint derivations.
 
 ## Data Override Mechanics
 

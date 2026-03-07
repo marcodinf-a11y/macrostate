@@ -121,7 +121,9 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 - Each sector must have different input/output mixes
 - Must use Leontief (fixed-proportion) production functions: each unit of output requires fixed quantities of each input, with no substitution between inputs
 - Must use inter-sector input-output coefficients loaded from data files to define supply chain linkages (ADR-0009)
-- Must make profit-driven production decisions (estimate demand, consider costs)
+- Must estimate demand using adaptive expectations: `ExpectedDemand = PreviousSales × (1 + trend)` where `trend` is a smoothed sales growth estimate updated via partial adjustment with `adaptationSpeed` parameter (Caiani et al. 2016)
+- Must set production target to `ExpectedDemand + max(0, TargetInventory - CurrentInventory)` where `TargetInventory = ExpectedDemand × TargetInventoryRatio`
+- `adaptationSpeed` and `initialDemandEstimate` (for new firms) must be loaded from sector data
 - Must post wages and hire workers
 - Must set prices using cost-plus markup with demand adjustment
 - Must use unit labor costs (wages/productivity) not raw wages in pricing
@@ -226,8 +228,11 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 
 #### FR-INV-002: Private Investment
 - Firms must invest in capital goods to maintain/expand capacity
+- Investment must use an accelerator-profit model: `DesiredInvestment = ReplacementInvestment + accelerator × max(0, ExpectedDemand - CurrentCapacity)` where `ReplacementInvestment = depreciationRate × CurrentCapital` (Fazzari et al. 1988, Godley & Lavoie 2012)
+- `ActualInvestment = min(DesiredInvestment, RetainedProfits + MaxBorrowing)` — retained profits used first, then bank credit
 - Investment must be funded from retained profits and/or bank loans
 - Capital goods must be produced by the manufacturing sector (enters sector demand via the Leontief I-O matrix; see ADR-0009)
+- `accelerator` and `capitalCostPerUnit` must be loaded from sector data
 - Private capital must depreciate using geometric depreciation: `K(t+1) = K(t) × (1 - δ) + I(t)`, where δ is the per-sector `capitalDepreciationRate` from sectors.json and I(t) is new private investment (Godley & Lavoie 2012)
 
 ### 2.8 Time and Lags

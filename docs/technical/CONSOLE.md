@@ -15,16 +15,16 @@ An in-game command line interface, always available (including release builds). 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ > set government.spending 5000                              │
-│ Government spending set to 5000/month                       │
-│ > query households.low_income.balance                       │
-│ Households (Low Income) deposit balance: 12,450             │
-│ > help spending                                             │
-│ Available spending commands:                                │
-│   set government.spending <amount>                          │
-│   set government.allocation.infrastructure <percent>        │
-│   set government.allocation.services <percent>              │
-│   set government.allocation.transfers <percent>             │
+│ > set government.spendingLevel 5000                          │
+│ Government spending set to 5000/month                        │
+│ > query households.low_income.depositBalance                 │
+│ Households (Low Income) deposit balance: 12,450              │
+│ > help spending                                              │
+│ Available spending commands:                                 │
+│   set government.spendingLevel <amount>                      │
+│   set government.allocation.infrastructure <percent>         │
+│   set government.allocation.services <percent>               │
+│   set government.allocation.transfers <percent>              │
 │ >                                                           │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -42,26 +42,26 @@ Query any value in the simulation.
 
 ```
 query <path>                          # Query a specific value
-query government.balance              # Treasury balance
-query government.bonds.outstanding    # Total bonds outstanding
-query households.low_income.balance   # Low income deposit balance
-query households.*.balance            # All household class balances
+query centralbank.treasuryAccountBalance  # Treasury balance
+query government.bondsOutstanding     # Total bonds outstanding
+query households.low_income.depositBalance  # Low income deposit balance
 query firms.agriculture.employees     # Agriculture sector employment
-query firms.*.price                   # All sector prices
-query banks.reserves                  # Bank reserve balance
-query banks.loans.total               # Total outstanding loans
-query economy.employment_rate         # Current employment rate
-query economy.inflation_rate          # Current inflation rate
-query economy.gdp                     # Current GDP
-query economy.indicators              # All key indicators at once
+query bank.reserves                   # Bank reserve balance
+query bank.loansOutstanding           # Total outstanding loans
+query indicators.employmentRate       # Current employment rate
+query indicators.inflationRate        # Current inflation rate
+query indicators.gdp                  # Current GDP
+query indicators                      # All key indicators at once
 query sfc.check                       # Run SFC consistency check, show any imbalances
 ```
 
-**Wildcards:** `*` matches any single segment. `**` matches multiple segments.
+All paths follow the schema defined in ARCHITECTURE.md Section 6.6. Root paths are: `time`, `government`, `centralbank`, `bank`, `firms.<sectorId>`, `households.<classId>`, `indicators`. Property names use camelCase matching C# interface property names.
+
+**Wildcards (post-MVP):** `*` matches any single segment. `**` matches multiple segments.
 
 ```
-query firms.**                        # All firm data (deep)
-query **.balance                      # All balances everywhere
+query firms.*                         # All sector summaries
+query firms.*.currentPrice            # All sector prices
 ```
 
 ### Manipulation (Write)
@@ -70,31 +70,30 @@ Modify simulation state. All monetary operations go through proper SFC channels.
 
 **Government:**
 ```
-set government.spending <amount>                  # Set monthly spending
+set government.spendingLevel <amount>             # Set monthly spending
 set government.allocation.infrastructure <pct>    # Set allocation %
 set government.allocation.services <pct>
 set government.allocation.transfers <pct>
-set government.tax_rate <rate>                    # Set tax rate (0.0-1.0)
+set government.taxRate <rate>                     # Set tax rate (0.0-1.0)
 spend <amount>                                    # One-time government spend
 tax <amount>                                      # One-time tax collection
-issue_bonds <amount>                              # Force bond issuance
+issueBonds <amount>                               # Force bond issuance
 ```
 
 **Central Bank:**
 ```
-set cb.policy_rate <rate>             # Set central bank policy rate
-cb.buy_bonds <amount>                 # Central bank buys bonds (QE)
-cb.sell_bonds <amount>                # Central bank sells bonds (QT)
+set centralbank.policyRate <rate>     # Set central bank policy rate
+centralbank.buyBonds <amount>        # Central bank buys bonds (QE)
+centralbank.sellBonds <amount>       # Central bank sells bonds (QT)
 ```
 
 **Economy:**
 ```
-set firms.<sector>.markup <value>     # Set sector markup
-set firms.<sector>.productivity <value>
-set firms.<sector>.wage <value>       # Set posted wage
-set households.<class>.balance <amount>   # Set deposit balance (via government transfer to maintain SFC)
-add households.<class>.balance <amount>   # Add to balance (via government transfer)
-set economy.employment_rate <rate>    # Force employment rate (adjusts hiring)
+set firms.<sectorId>.currentMarkup <value>     # Set sector markup
+set firms.<sectorId>.productivity <value>
+set firms.<sectorId>.postedWage <value>        # Set posted wage
+set households.<classId>.depositBalance <amount>   # Set deposit balance (via government transfer to maintain SFC)
+add households.<classId>.depositBalance <amount>   # Add to balance (via government transfer)
 ```
 
 **Agents:**
@@ -121,8 +120,8 @@ skip <months>                         # Skip forward N months
 scenario list                         # List available scenarios
 scenario load <name>                  # Load a scenario
 scenario restart                      # Restart current scenario
-save <name>                           # Save game state
-load <name>                           # Load game state
+save <name>                           # Save game state [post-MVP, see ADR-0006]
+load <name>                           # Load game state [post-MVP, see ADR-0006]
 reset                                 # Reset to initial state
 ```
 
@@ -142,7 +141,7 @@ version                               # Show game and mod versions
 
 ```
 balance government                    # Show government balance sheet
-balance banks                         # Show banking sector balance sheet
+balance bank                          # Show banking sector balance sheet
 balance households                    # Show household sector balance sheet
 balance households.low_income         # Show specific class balance sheet
 balance firms                         # Show firm sector balance sheet
@@ -157,10 +156,10 @@ sfc matrix                            # Show the transaction flow matrix
 
 ```
 log <path> [duration]                 # Log a variable to console output each tick
-log economy.inflation_rate 12         # Log inflation for 12 ticks
+log indicators.inflationRate 12       # Log inflation for 12 ticks
 log stop                              # Stop all logging
 export <path> <filename>              # Export variable history to CSV
-export economy.* data.csv             # Export all economy indicators
+export indicators.* data.csv          # Export all economy indicators
 ```
 
 ## Scripting
@@ -182,16 +181,16 @@ pause
 reset
 
 # Set initial conditions
-set government.spending 10000
+set government.spendingLevel 10000
 set government.allocation.infrastructure 0.4
 set government.allocation.services 0.3
 set government.allocation.transfers 0.3
-set government.tax_rate 0.20
+set government.taxRate 0.20
 
 # Run and observe
-log economy.inflation_rate
-log economy.employment_rate
-log economy.gdp
+log indicators.inflationRate
+log indicators.employmentRate
+log indicators.gdp
 resume
 speed 5
 ```
@@ -209,14 +208,14 @@ Write commands that affect money stocks do NOT directly edit numbers. They opera
 | Command | Actual operation |
 |---|---|
 | `spend 1000` | Government spending of 1000 → creates reserves → creates deposits in recipient accounts |
-| `add households.low_income.balance 500` | Government transfer of 500 to low income households → proper spending flow |
-| `set households.low_income.balance 10000` | Calculates difference from current balance, executes government transfer for the delta |
+| `add households.low_income.depositBalance 500` | Government transfer of 500 to low income households → proper spending flow |
+| `set households.low_income.depositBalance 10000` | Calculates difference from current balance, executes government transfer for the delta |
 | `tax 2000` | Forces tax collection of 2000 → destroys deposits → destroys reserves |
 
 **Exception:** the `set` command with the `--force` flag bypasses SFC and directly edits values. This will trigger an SFC consistency warning and is intended only for debugging:
 
 ```
-set --force banks.reserves 99999     # UNSAFE: directly sets reserves, breaks SFC
+set --force bank.reserves 99999      # UNSAFE: directly sets reserves, breaks SFC
 sfc check                            # Will report imbalance
 sfc repair                           # Attempts to restore consistency by adjusting government balance
 ```

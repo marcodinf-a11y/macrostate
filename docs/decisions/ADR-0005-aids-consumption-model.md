@@ -33,4 +33,4 @@ Key design consequences of adopting AIDS:
 - Parameters are data-driven and empirically grounded — calibration uses real CEX data rather than invented thresholds.
 - Engel's law emerges naturally from the model (food budget share declines as income rises) rather than being hard-coded.
 - Price substitution effects are built in — no separate elasticity system needed.
-- Banking is excluded from AIDS demand (consistent with MMT/SFC tradition — financial intermediation is not consumption).
+- Banking is excluded from AIDS demand (consistent with MMT/SFC tradition — credit creation is not consumption).

@@ -4,7 +4,7 @@ This document defines the simulation's economic model in detail. The model is gr
 
 ## Foundational Framework: Stock-Flow Consistency (SFC)
 
-The simulation uses double-entry bookkeeping for the entire economy. Every financial transaction has an explicit source and destination. Money never appears from nowhere or vanishes — except through the two legitimate channels:
+The simulation uses double-entry bookkeeping for the entire economy. Every financial transaction has an explicit source and destination. Money never appears from nowhere or vanishes — except through two paired channels (creation and its reverse):
 
 1. **Government spending** — creates new currency (central bank reserves + bank deposits)
 2. **Taxation** — destroys currency (removes deposits + reserves from circulation)
@@ -87,7 +87,7 @@ Any transaction that crosses a bank boundary (e.g., a household at Bank A paying
 |   +--------------+         +--------------+                   |
 |   | Low income   |         | Agriculture  |                   |
 |   +--------------+         +--------------+                   |
-|   | Mid income   |         | Manufacturing|                   |
+|   | Middle income|         | Manufacturing|                   |
 |   +--------------+         +--------------+                   |
 |   | High income  |         | Construction |                   |
 |   +--------------+         +--------------+                   |
@@ -172,7 +172,7 @@ Operates the reserve system and sets monetary policy.
 **Actions:**
 - Maintain reserve accounts for commercial banks
 - Set the policy interest rate (base rate)
-- Provide reserves to commercial banks on demand at the policy rate (lender of last resort / standing facility). The standing facility rate may differ from the policy rate (corridor/floor system — see F10)
+- Provide reserves to commercial banks on demand at the policy rate (lender of last resort / standing facility). The standing facility rate may differ from the policy rate (corridor/floor system — post-MVP refinement)
 - Buy/sell government bonds (open market operations)
 - Act as buyer of last resort at primary bond auctions
 
@@ -197,7 +197,7 @@ Intermediate between the reserve and deposit circuits. Create credit.
 - Pay interest on deposits (if modeled)
 - Lending rate = central bank policy rate + bank spread + risk premium
 
-Banking is modeled as financial intermediation, not as a production sector. Banks do not produce output that households consume. Their function is to create purchasing power (credit money) that enables real economic activity. This is consistent with the MMT/post-Keynesian SFC tradition (Godley & Lavoie) where the banking sector has a balance sheet and behavioral rules, not a production function. Bank revenue (interest spread) appears on balance sheets through interest flows, not through the AIDS demand system.
+Banking is modeled as a credit-creation and payments sector, not as a production sector. Banks do not produce output that households consume. Their function is to create purchasing power (credit money) that enables real economic activity. This is consistent with the MMT/post-Keynesian SFC tradition (Godley & Lavoie) where the banking sector has a balance sheet and behavioral rules, not a production function. Bank revenue (interest spread) appears on balance sheets through interest flows, not through the AIDS demand system.
 
 ### Households
 
@@ -248,6 +248,32 @@ All firms are profit-driven: they estimate demand, consider costs, and make prod
 - Pay wages and taxes
 - Invest in capital via bank loans or internal funds
 - Hold inventory of unsold goods
+
+### Demand Estimation
+
+Firms use adaptive expectations to forecast demand for production planning (Caiani et al. 2016). Each tick, a firm estimates expected demand based on its recent sales history:
+
+```
+ExpectedDemand_t = PreviousSales_t-1 × (1 + trend_t)
+trend_t = trend_t-1 + adaptationSpeed × (salesGrowth_t-1 - trend_t-1)
+salesGrowth_t-1 = (PreviousSales_t-1 - PreviousSales_t-2) / PreviousSales_t-2
+```
+
+Where:
+- `PreviousSales` is the firm's actual sales (quantity sold) in the previous tick
+- `trend` is a smoothed estimate of sales growth, updated each tick via partial adjustment
+- `adaptationSpeed` is a data-driven parameter (e.g., 0.25) controlling how quickly firms revise their expectations
+
+**Production target:** The firm sets its production target to replenish inventory to the target level while meeting expected demand:
+
+```
+ProductionTarget = ExpectedDemand + max(0, TargetInventory - CurrentInventory)
+TargetInventory = ExpectedDemand × TargetInventoryRatio
+```
+
+This links demand estimation to the inventory-based markup system (see Pricing below): if firms consistently overestimate demand, inventories pile up, markup falls, and prices drop. If they underestimate, inventories deplete, markup rises, and prices increase. The feedback is self-correcting.
+
+**Edge cases:** When `PreviousSales = 0` (new firm or total demand collapse), set `ExpectedDemand = InitialDemandEstimate` (a data-driven per-sector parameter representing startup expectations). When `PreviousSales_t-2 = 0` (only one tick of history), set `salesGrowth = 0` (no trend signal).
 
 ## Production Function: Leontief Input-Output
 
@@ -309,6 +335,8 @@ DemandAdjustmentFactor = TargetInventoryRatio / ActualInventoryRatio
 - When inventories pile up (low demand): factor < 1, markup falls (competitive pressure)
 - When inventories at target: factor = 1, markup at base level
 - When inventories deplete (high demand): factor > 1, markup rises (sellers have pricing power)
+
+**Edge cases:** `ActualInventoryRatio = CurrentInventory / RecentSales`. When `RecentSales = 0` (no sales), treat `ActualInventoryRatio` as equal to `TargetInventoryRatio` (factor = 1, no pressure). When `CurrentInventory = 0`, cap `DemandAdjustmentFactor` at a configurable maximum (e.g., 2.0) to prevent unbounded markup spikes.
 
 Inventory-based adjustment is preferred over capacity-utilization-based because firms directly observe their own inventory levels. `TargetInventoryRatio` is a per-sector parameter from sectors.json.
 
@@ -553,19 +581,38 @@ Government spending on **infrastructure** builds public capital that benefits al
 Public capital depreciates slowly and requires maintenance spending.
 
 ### Private Investment (Firms)
-Firms invest in capital goods to maintain and expand productive capacity:
+Firms invest in capital goods to maintain and expand productive capacity. The investment decision uses a simple accelerator-profit model (Fazzari et al. 1988, Godley & Lavoie 2012 Ch. 11):
 
-**Investment decision factors:**
-- Expected future demand (based on recent sales trends)
-- Current capacity utilization (if near full, need to expand)
-- Borrowing costs (bank lending rate)
-- Available capital goods on the market (produced by manufacturing sector)
+**Investment decision:**
+
+```
+DesiredInvestment = ReplacementInvestment + ExpansionInvestment
+
+ReplacementInvestment = depreciationRate × CurrentCapital
+ExpansionInvestment = accelerator × max(0, ExpectedDemand - CurrentCapacity)
+```
+
+Where:
+- `depreciationRate` is the sector-specific geometric depreciation rate (ADR-0012)
+- `accelerator` is a data-driven parameter (e.g., 0.5) controlling how aggressively firms expand
+- `ExpectedDemand` comes from the demand estimation rule (see Demand Estimation above)
+- `CurrentCapacity` is the firm's current maximum output given its capital stock
+
+**Funding and rationing:**
+
+```
+MaxBorrowing = max(0, creditLimit - existingDebt)
+AvailableFunds = RetainedProfits + MaxBorrowing
+ActualInvestment = min(DesiredInvestment, AvailableFunds)
+```
+
+If `DesiredInvestment > RetainedProfits`, the firm seeks a bank loan for the shortfall (up to its credit limit). If even with borrowing the firm cannot fund desired investment, it invests what it can afford. This creates a realistic credit constraint channel where tight lending standards or high interest rates reduce investment.
 
 **Funding sources:**
-1. Bank loans (credit creation — new money is created to fund the investment)
-2. Internal funds (retained profits redirected to investment)
+1. Internal funds (retained profits — used first)
+2. Bank loans (credit creation — new money is created to fund the remaining investment)
 
-Bank lending is the primary enabler of investment. A firm's decision to invest is based on expected demand, capacity utilization, and borrowing costs — not on the pre-existence of savings. When investment is bank-funded, the loan creates new deposits (which become someone's saving), so at the macro level investment creates saving, not the reverse.
+Bank lending is the primary enabler of expansion investment. A firm's decision to invest is based on expected demand, capacity utilization, and borrowing costs — not on the pre-existence of savings. When investment is bank-funded, the loan creates new deposits (which become someone's saving), so at the macro level investment creates saving, not the reverse.
 
 **Capital dynamics:**
 - Capital goods depreciate over time (require replacement investment)

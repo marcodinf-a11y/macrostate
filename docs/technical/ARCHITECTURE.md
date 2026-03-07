@@ -467,7 +467,7 @@ public interface IPolicyPipeline
 
 `SimulationCommands` delegates to `IPolicyPipeline.Enqueue()` instead of directly mutating state. The `TickEngine` calls `FlushReady()` at the start of the Government Phase and applies the returned changes. `ISimulationState.PolicyPipeline` exposes `PendingChanges` to the UI (read-only).
 
-**Overlapping changes:** If the player changes the same policy twice before the first takes effect, both entries exist in the pipeline. `FlushReady` applies them in enqueue order. The second change overwrites the first when it arrives.
+**Overlapping changes (ADR-0002):** If the player changes the same policy parameter while a previous change is still pending, `Enqueue()` replaces the pending entry's target value and resets the lag timer. At most one pending entry per `PolicyChangeKind` exists in the pipeline at any time.
 
 **Note on economic lags (FR-TIM-002):** Wage stickiness, price adjustment speed, hiring delays, etc. are *not* queued commands — they are behavioral parameters governing how fast agents react. These are handled within individual engines (e.g., `PricingEngine` applies gradual price adjustments using a speed parameter from `IDataProvider`). The `IPolicyPipeline` component is only for player-initiated policy changes.
 
@@ -516,18 +516,20 @@ Public investment translates spending into capacity or productivity via `IPolicy
 ΔProductivity_sector += ServicesSpending × ProductivityMultiplier_sector
 ```
 
-Private investment is demand-driven. Firms invest when capacity utilization exceeds `capacityUtilizationThreshold` (from `IDataProvider`, default 0.85). Capital goods are purchased from the manufacturing sector:
+Private investment uses an accelerator-profit model (Fazzari et al. 1988, Godley & Lavoie 2012). Firms invest to replace depreciated capital and expand when expected demand exceeds current capacity. Capital goods are purchased from the manufacturing sector:
 
 ```
-// Firm decides to invest when utilization > threshold
-InvestmentAmount = f(expectedDemandGrowth, availableFunds, borrowingCost)
-ΔCapacity_firm += InvestmentAmount / CapitalCostPerUnit_sector
+ReplacementInvestment = depreciationRate_sector × CurrentCapital
+ExpansionInvestment = accelerator_sector × max(0, ExpectedDemand - CurrentCapacity)
+DesiredInvestment = ReplacementInvestment + ExpansionInvestment
+ActualInvestment = min(DesiredInvestment, RetainedProfits + MaxBorrowing)
+ΔCapacity_firm += ActualInvestment / CapitalCostPerUnit_sector
 ```
 
-Funding comes from retained profits or bank credit (Phase 5). All capital depreciates each tick at sector-specific rates from `IDataProvider`:
+Funding uses retained profits first, then bank credit (Phase 5). `accelerator` and `capitalCostPerUnit` are per-sector parameters from `IDataProvider`. All capital depreciates each tick:
 
 ```
-Capital_t+1 = Capital_t × (1 - depreciationRate_sector)
+Capital_t+1 = Capital_t × (1 - depreciationRate_sector) + I(t)
 ```
 
 See ECONOMIC-MODEL.md "Investment" section for the full economic rationale.
@@ -543,9 +545,9 @@ public interface IPricingEngine
     /// Buffer 1 (productivity): Emergent from ULC formula — if productivity rises with wages,
     ///   ULC stays flat and no price pressure exists. No pricing logic needed; this is a
     ///   production-side outcome.
-    /// Buffer 2 (demand slack): Markup only increases when capacity utilization exceeds a
-    ///   sector-specific threshold. Below that threshold, increased spending raises output,
-    ///   not prices (firms produce more rather than charge more).
+    /// Buffer 2 (demand slack): When actual inventory exceeds target (demand is below supply),
+    ///   increased spending draws down inventory rather than raising markup. Markup adjustment
+    ///   only activates when inventories fall below target (excess demand).
     /// Buffer 3 (margin compression): When input costs rise, firms first compress their markup
     ///   toward MinimumMarkup before passing cost increases to prices. This absorbs cost shocks
     ///   up to the margin slack available.
@@ -559,18 +561,18 @@ public interface IPricingEngine
 
 1. **Buffer 1 — Productivity absorbs wage increases:** This buffer is emergent, not coded in the pricing engine. Unit labor cost (ULC) = total wages / total output. If productivity growth matches wage growth, ULC is flat and there is no cost pressure to pass through. The `PricingEngine` simply computes ULC; the buffer is a mathematical consequence of the production system.
 
-2. **Buffer 2 — Demand slack absorbs spending increases:** When capacity utilization is below `CapacityThreshold` (per sector, from `IDataProvider`), increased demand is met by increasing output rather than raising markup. The markup adjustment only activates when utilization exceeds the threshold. Below it, spending increases raise real output, not prices.
+2. **Buffer 2 — Demand slack absorbs spending increases:** When actual inventory ratio is above target (demand is below supply), increased spending draws down inventory rather than raising markup. The `DemandAdjustmentFactor` (= `TargetInventoryRatio / ActualInventoryRatio`) stays below 1.0 when inventories are ample, suppressing markup pressure. Only when inventories fall below target does the factor exceed 1.0 and push markup upward (ADR-0011, Caiani et al. 2016).
 
 3. **Buffer 3 — Margin compression absorbs cost increases:** When input costs (ULC + unit material cost) rise, firms first reduce their `CurrentMarkup` toward `MinimumMarkup` before raising prices. The absorbable amount equals `CurrentMarkup - MinimumMarkup`. Only the residual cost increase — the portion exceeding available margin slack — passes through to a price increase.
 
-**"All three exhausted" condition:** Inflation occurs when (a) productivity has not kept pace with wages (ULC is rising), AND (b) the economy is operating above the capacity threshold (no output slack), AND (c) the firm's markup has already been compressed to `MinimumMarkup` (no margin slack). Only then does remaining cost pressure flow through as a price increase.
+**"All three exhausted" condition:** Inflation occurs when (a) productivity has not kept pace with wages (ULC is rising), AND (b) inventories are below target (no demand slack — `DemandAdjustmentFactor` > 1.0), AND (c) the firm's markup has already been compressed to `MinimumMarkup` (no margin slack). Only then does remaining cost pressure flow through as a price increase.
 
 **Data-driven parameters** (per sector, loaded from `IDataProvider`):
 - `BaseMarkup` — starting markup rate for the sector
 - `MinimumMarkup` — floor below which markup cannot be compressed
 - `MarkupUpwardSpeed` — how quickly markup increases per tick (e.g., 0.5 — fast)
 - `MarkupDownwardSpeed` — how quickly markup decreases per tick (e.g., 0.1 — slow)
-- `CapacityThreshold` — utilization level above which demand pressure raises markup
+- `TargetInventoryRatio` — target inventory-to-sales ratio; markup pressure activates when actual ratio falls below this (ADR-0011)
 
 **Markup convergence formula (per tick):**
 
@@ -584,6 +586,8 @@ CurrentMarkup = max(CurrentMarkup, MinimumMarkup)
 ```
 
 Where `DemandAdjustmentFactor = TargetInventoryRatio / ActualInventoryRatio` (> 1 when inventories deplete, < 1 when inventories pile up; Caiani et al. 2016), and `SupplyPressureFactor = NormalInputAvailability / ActualInputAvailability` (> 1 when inputs are scarce). Both factors use the same asymmetric speeds — they ratchet up fast but decay slowly. See ADR-0010 for rationale.
+
+**Edge-case guards:** `ActualInventoryRatio = CurrentInventory / RecentSales`. When `RecentSales = 0`, set `ActualInventoryRatio = TargetInventoryRatio` (factor = 1.0). When `CurrentInventory = 0`, cap `DemandAdjustmentFactor` at a configurable maximum (e.g., `MaxDemandAdjustmentFactor = 2.0`).
 
 **Phase:** Market Phase (before household purchasing). See Section 4.1 tick data flow.
 
@@ -721,6 +725,63 @@ public class GovernmentJobPosting
 - Creates a de facto wage floor — private firms must offer competitive wages or lose workers to the public sector
 
 **Phase:** Government Phase (after spending execution, before Production Phase). Job postings enter the labor market pool alongside firm postings. Procurement demand is served during Market Phase alongside household AIDS demand.
+
+### 3.15 Scenario Engine
+
+The `ScenarioEngine` evaluates win/lose conditions each tick for scenario mode (FR-GMD-002). In sandbox mode, the scenario engine is inactive.
+
+```csharp
+public interface IScenarioEngine
+{
+    /// Whether a scenario is currently active.
+    bool IsActive { get; }
+
+    /// The loaded scenario definition, or null in sandbox mode.
+    ScenarioData? CurrentScenario { get; }
+
+    /// Evaluate all objectives and fail conditions against current state.
+    /// Called at the end of each tick (Accounting Phase).
+    /// Returns null if no terminal condition is met.
+    ScenarioResult? Evaluate(ISimulationState state, int currentTick);
+}
+
+public class ScenarioData
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int TimeLimitTicks { get; set; }
+    public IReadOnlyList<ScenarioObjective> Objectives { get; set; }
+    public IReadOnlyList<ScenarioFailCondition> FailConditions { get; set; }
+}
+
+public class ScenarioObjective
+{
+    public string IndicatorPath { get; set; }   // e.g., "indicators.employmentRate"
+    public ComparisonOp Comparison { get; set; } // GreaterThan, LessThan, etc.
+    public decimal TargetValue { get; set; }
+    public int SustainTicks { get; set; }       // Must hold for N consecutive ticks
+}
+
+public class ScenarioFailCondition
+{
+    public string IndicatorPath { get; set; }
+    public ComparisonOp Comparison { get; set; }
+    public decimal ThresholdValue { get; set; }
+}
+
+public enum ComparisonOp { GreaterThan, LessThan, GreaterOrEqual, LessOrEqual, Equal }
+
+public class ScenarioResult
+{
+    public bool IsWin { get; set; }
+    public string Reason { get; set; }
+}
+```
+
+**Evaluation uses `QueryByPath`:** Objective and fail condition paths are resolved via `ISimulationState.QueryByPath`, so any indicator exposed in the path schema (Section 6.6) can be used as a scenario target.
+
+**Phase:** End of Accounting Phase. After SFC validation, before tick completion.
 
 ## 4. Data Flow
 
@@ -958,9 +1019,8 @@ game/
 ├── data/
 │   └── base/                         # Base game data (JSON files)
 │       ├── economy/
-│       │   ├── sectors.json
+│       │   ├── sectors.json        # Sector definitions + Leontief I-O coefficients
 │       │   ├── consumption.json    # AIDS parameters per household class
-│       │   ├── production.json
 │       │   └── parameters.json
 │       ├── agents/
 │       │   ├── households.json
@@ -982,14 +1042,20 @@ game/
 │   │   ├── GAME-DESIGN.md
 │   │   └── ECONOMIC-MODEL.md
 │   ├── requirements/
-│   │   └── PRD.md
+│   │   ├── PRD.md
+│   │   └── MVP-SCOPE.md
 │   ├── technical/
 │   │   ├── ARCHITECTURE.md
 │   │   ├── MVP-IMPLEMENTATION-PLAN.md
 │   │   ├── CONSOLE.md
-│   │   └── MODDING.md
+│   │   ├── MODDING.md
+│   │   └── UI-TESTING-ROADMAP.md
+│   ├── decisions/
+│   │   ├── README.md
+│   │   └── ADR-0001 through ADR-0014
 │   └── reviews/
-│       └── mmt-accuracy.md
+│       ├── prd-review.md
+│       └── full-document-review.md
 │
 └── mods/                             # Mod directory (empty in base game)
     └── .gitkeep
