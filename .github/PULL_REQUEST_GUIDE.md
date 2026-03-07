@@ -57,6 +57,8 @@ Use this template:
 ## Summary
 <1-3 bullet points describing what changed and why>
 
+Closes #<issue number, if applicable>
+
 ## Context
 <Why this change is needed. Reference issues, audit findings, or review comments if applicable.>
 

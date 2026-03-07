@@ -66,8 +66,8 @@ Any transaction that crosses a bank boundary (e.g., a household at Bank A paying
 
 **Interbank payment flow (e.g., household at Bank A pays firm at Bank B):**
 1. Payer's deposit account debited at Bank A
-2. Bank A's reserve account debited
-3. Bank B's reserve account credited
+2. Bank A's reserve account at central bank debited
+3. Bank B's reserve account at central bank credited
 4. Payee's deposit account credited at Bank B
 
 **Intra-bank payment flow (payer and payee at same bank):**
