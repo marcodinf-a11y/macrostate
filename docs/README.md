@@ -34,5 +34,4 @@ The `reviews/` directory contains audit artifacts — point-in-time assessments 
 
 | Review | Purpose |
 |---|---|
-| [consistency.md](reviews/consistency.md) | Cross-document consistency audit |
 | [mmt-accuracy.md](reviews/mmt-accuracy.md) | MMT economic accuracy review |
