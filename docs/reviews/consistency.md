@@ -466,7 +466,7 @@ Architecture 2.2 says the Game Controller handles "save/load." The PRD has no sa
 
 ---
 
-### L7. Architecture Data Model List Incomplete
+### ~~L7. Architecture Data Model List Incomplete~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -477,6 +477,8 @@ Architecture Section 5 lists 4 data model files under `src/Simulation/Data/Model
 Implementation Plan Phase 1 needs 10 model classes, adding: `FirmData`, `BankData`, `GovernmentData`, `ProductionData`, `ParametersData`, `SimulationConfigData`. These correspond to JSON files already listed in the Architecture's `data/base/` tree — the model file list is simply incomplete.
 
 Similarly, `IDataValidator.cs` and `DataValidator.cs` are described in Architecture 3.6 but missing from the project structure file listing in Section 5.
+
+**Resolution:** Removed per-file listing from `Models/` directory — replaced with a comment that there is one model class per `data/base/` JSON file. The interface sections (§3.1–§3.14) and Implementation Plan phases are the authoritative source for individual files; duplicating them in the project structure creates drift. Added `IDataValidator.cs` and `DataValidator.cs` to the `Data/` directory listing.
 
 ---
 

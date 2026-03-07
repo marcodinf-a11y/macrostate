@@ -817,14 +817,9 @@ game/
 │   │   └── Data/
 │   │       ├── IDataProvider.cs      # Data loading interface
 │   │       ├── JsonDataProvider.cs   # JSON file loader
-│   │       └── Models/              # Data models for JSON deserialization
-│   │           ├── SectorData.cs
-│   │           ├── HouseholdData.cs
-│   │           ├── ConsumptionData.cs # AIDS parameters (alpha, beta, gamma per class)
-│   │           ├── GovernmentDemandData.cs # Spending-to-resource mapping
-│   │           ├── InvestmentData.cs
-│   │           ├── PricingData.cs     # Per-sector markup parameters and thresholds
-│   │           └── ScenarioData.cs
+│   │       ├── IDataValidator.cs     # Validation interface
+│   │       ├── DataValidator.cs      # Validation implementation
+│   │       └── Models/              # Data models for JSON deserialization (one per data/base/ file)
 │   │
 │   └── Game/                         # Godot project
 │       ├── project.godot             # Godot project file
