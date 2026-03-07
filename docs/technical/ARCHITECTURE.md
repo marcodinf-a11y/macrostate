@@ -111,7 +111,6 @@ A thin Godot node that bridges the simulation engine and the UI. This is the onl
 - Route player commands (policy changes) from UI to simulation
 - Expose `ISimulationState`, `ISimulationCommands`, and `ITimeControl` to console node
 - Manage game modes (sandbox, scenario) and win/lose detection
-- Handle save/load
 
 **Does NOT contain:**
 - Economic logic

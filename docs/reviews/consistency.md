@@ -452,7 +452,7 @@ If post-MVP structural changes are added (e.g., introducing a Job Guarantee prog
 
 ---
 
-### L6. Save/Load in Architecture with No PRD Requirement
+### ~~L6. Save/Load in Architecture with No PRD Requirement~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -461,6 +461,8 @@ If post-MVP structural changes are added (e.g., introducing a Job Guarantee prog
 Architecture 2.2 says the Game Controller handles "save/load." The PRD has no save/load requirement, and it is not listed as out of scope either.
 
 **Suggested resolution:** Either add save/load to the PRD as a requirement or to the out-of-scope list, or remove it from the Architecture.
+
+**Resolution:** Deferred save/load to post-MVP. Added to PRD Section 5 (Out of Scope) with note that it is high priority for post-MVP. Removed "Handle save/load" from Architecture Section 2.2 Game Controller responsibilities. Rationale: full state serialization is non-trivial (ledger, balance sheets, policy pipeline, capital stocks, AIDS parameters, pending lags) and would slow every phase as the model evolves. The simulation is deterministic (seeded `IRandom`), so a replay-log approach (recording policy inputs per tick) is a viable lightweight alternative. Stellaris-style save compatibility (saves may break across major releases) is an acceptable trade-off when save/load is implemented.
 
 ---
 

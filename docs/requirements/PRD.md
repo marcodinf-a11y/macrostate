@@ -474,5 +474,6 @@ The following are explicitly not part of the MVP:
 | Plugin API for code mods | Data-driven JSON modding sufficient for MVP |
 | Multiplayer | Single-player focus for MVP |
 | Tutorial / guided onboarding | Sandbox and scenario modes provide sufficient onboarding |
+| Save/load game state | Deterministic simulation + short sessions; full state serialization deferred to post-MVP (high priority) |
 | Sound / music | Gameplay mechanics first; polish later |
 | Localization | English only for MVP |
