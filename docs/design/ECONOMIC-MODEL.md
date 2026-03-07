@@ -226,6 +226,44 @@ All firms are profit-driven: they estimate demand, consider costs, and make prod
 - Invest in capital from retained profits + bank loans
 - Hold inventory of unsold goods
 
+## Production Function: Leontief Input-Output
+
+Each sector uses **fixed technical coefficients** (Leontief / fixed proportions). To produce one unit of output, a firm needs fixed quantities of each input — inputs cannot substitute for one another.
+
+```
+Output_s = min(Input_1 / a_s1, Input_2 / a_s2, ..., Labor / a_sL)
+
+Where:
+  a_si = technical coefficient for input i in sector s
+  a_sL = labor coefficient for sector s
+```
+
+For example, if Manufacturing has coefficients `labor: 0.4, raw_materials: 0.35, capital: 0.25`, then producing 100 units requires exactly 40 units of labor, 35 units of raw materials, and 25 units of capital goods. A shortage of any input constrains output proportionally.
+
+### Inter-Sector Input-Output Matrix
+
+Sectors consume each other's output as intermediate inputs. These linkages are defined by an input-output matrix specifying how much of each sector's output is required per unit of production in every other sector:
+
+| Producing ↓ / Input → | Agriculture | Manufacturing | Construction | Services | Labor |
+|---|---|---|---|---|---|
+| **Agriculture** | — | low | — | low | high |
+| **Manufacturing** | moderate | low | — | low | moderate |
+| **Construction** | — | high | — | low | high |
+| **Services** | low | low | — | — | high |
+
+The exact coefficients are data-driven, loaded from `sectors.json`. The matrix above shows qualitative magnitudes for the MVP.
+
+**Key properties:**
+- Supply shocks propagate through the matrix: a disruption in Agriculture constrains Manufacturing (raw materials), which constrains Construction (manufactured materials)
+- The matrix makes inter-sector dependencies explicit and produces emergent supply chain dynamics
+- Government procurement enters through this matrix — infrastructure spending creates demand in Construction, which pulls from Manufacturing
+- Coefficients are fixed in the short run; long-run technological change (coefficient drift) is a post-MVP enhancement
+
+This follows the Godley/Lavoie (2012) SFC modeling tradition and Sraffa's (1960) *Production of Commodities by Means of Commodities*. Input coefficients in `sectors.json` are Leontief technical coefficients, not Cobb-Douglas exponents.
+
+> **Design note — why Leontief, not Cobb-Douglas or CES:**
+> Cobb-Douglas assumes smooth input substitution (σ=1), which implies wages equal marginal product — a neoclassical result incompatible with MMT/post-Keynesian wage theory. Empirical estimates of the elasticity of substitution consistently fall in the 0.4–0.7 range (Chirinko 2008, Oberfield & Raval 2021), much closer to Leontief (σ=0) than Cobb-Douglas. CES with low σ would be more empirically precise but adds calibration complexity without meaningful gameplay difference. Pure Leontief is the simplest model consistent with both the empirical evidence and the post-Keynesian theoretical framework.
+
 ## Pricing Model
 
 ### Cost-Plus Markup with Demand Adjustment
