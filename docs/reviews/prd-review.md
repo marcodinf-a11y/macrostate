@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-07
 **Document reviewed:** `docs/requirements/PRD.md`
-**Cross-referenced:** ECONOMIC-MODEL.md, GAME-DESIGN.md, ARCHITECTURE.md, IMPLEMENTATION-PLAN.md, all ADRs, PARAMETERS-COMMENTARY.md, mmt-accuracy.md
+**Cross-referenced:** ECONOMIC-MODEL.md, GAME-DESIGN.md, ARCHITECTURE.md, MVP-IMPLEMENTATION-PLAN.md, all ADRs, mmt-accuracy.md
 
 ## Summary
 
@@ -24,21 +24,25 @@ Four-axis review of the PRD covering correctness, staleness, completeness, and a
 - **PRD:** FR-PRC-001 (line 121): "Markup must adjust based on demand relative to capacity"
 - **Conflict:** ADR-0010 specifies asymmetric speeds (upward fast 0.5, downward slow 0.1) with per-sector parameters `markupUpwardSpeed` and `markupDownwardSpeed`.
 
-### C4: ECONOMIC-MODEL describes CB acting in secondary market
+### C4: ECONOMIC-MODEL describes CB acting in secondary market — ✅ Partially resolved
 - **PRD:** Section 5 (line 468) excludes secondary market from MVP. FR-BND-001 describes CB as auction backstop only.
 - **Conflict:** ECONOMIC-MODEL SS172 says CB "Buy/sell government bonds on secondary market." The PRD is correct; ECONOMIC-MODEL needs fixing.
+- **Resolution:** After MVP extraction, ECONOMIC-MODEL describes the full vision. CB secondary market operations (open market operations) are correct for full vision. Fixed: clarified as "open market operations" and separated "buyer of last resort at primary auctions" into its own bullet.
 
-### C5: ECONOMIC-MODEL uses soft language for CB rate
+### C5: ECONOMIC-MODEL uses soft language for CB rate — ✅ Resolved
 - **PRD:** FR-AGT-002: "fixed at 0 for MVP" (mandatory)
 - **Conflict:** ECONOMIC-MODEL SS173: "can default to 0" (optional). ECONOMIC-MODEL's own MVP table agrees with PRD. ECONOMIC-MODEL needs fixing.
+- **Resolution:** After MVP extraction, documents describe the full vision. The CB rate behavior is correctly described as full vision in ECONOMIC-MODEL, and MVP scoping is handled by MVP-SCOPE.md (CB rate fixed at 0). No conflict remains.
 
-### C6: ECONOMIC-MODEL uses two-component lending rate formula
+### C6: ECONOMIC-MODEL uses two-component lending rate formula — ✅ Resolved
 - **PRD:** FR-AGT-003/FR-BNK-002: "CB policy rate + spread + risk premium" (three components)
 - **Conflict:** ECONOMIC-MODEL SS194 uses two components. Its own SS465 agrees with PRD. ECONOMIC-MODEL needs fixing.
+- **Resolution:** Fixed ECONOMIC-MODEL SS194 to use three-component formula: "central bank policy rate + bank spread + risk premium", consistent with PRD and the detailed formula at SS465.
 
-### C7: PRD does not specify Leontief production function
+### ~~C7: PRD does not specify Leontief production function~~ ✅ Resolved
 - **PRD:** FR-AGT-005 (line 107): "Each sector must have different input/output mixes"
 - **Conflict:** ADR-0009, ECONOMIC-MODEL SS248-284, and GAME-DESIGN SS133 all specify Leontief I-O with fixed technical coefficients. The PRD is too vague; a non-Leontief implementation would satisfy it.
+- **Resolution:** PRD updated to explicitly reference Leontief I-O production function per ADR-0009.
 
 > **Note:** C4-C6 are issues in ECONOMIC-MODEL.md, not the PRD. They should be fixed in that document.
 
@@ -60,15 +64,17 @@ Missing seller's inflation from ADR-0010.
 - **PRD:** FR-PRC-003 (line 131): "Price level must be a weighted average across all goods"
 - **Issue:** Should say "across all sectors" since goods are not a first-class concept.
 
-### S5: FR-AGT-005 / FR-INV-002 missing Leontief reference (same as C7)
+### ~~S5: FR-AGT-005 / FR-INV-002 missing Leontief reference (same as C7)~~ ✅ Resolved
 Neither section references the Leontief I-O production function from ADR-0009.
+- **Resolution:** PRD updated to explicitly reference Leontief I-O production function per ADR-0009.
 
 ---
 
 ## 3. Completeness -- Missing Requirements
 
-### G1: Leontief I-O production function (same as C7/S5)
+### ~~G1: Leontief I-O production function (same as C7/S5)~~ ✅ Resolved
 No FR for fixed-proportion production or inter-sector I-O matrix.
+- **Resolution:** PRD updated to add Leontief I-O production function requirement per ADR-0009.
 
 ### ~~G2: Seller's inflation / supply-side markup pressure (same as C2/S2)~~ ✅ Resolved
 No FR for the supply pressure mechanism from ADR-0010.
@@ -158,7 +164,7 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 - ~~C1/S1: "industry" to "manufacturing" (trivial fix)~~ ✅
 - ~~C2/S2/G2: Add seller's inflation requirement per ADR-0010~~ ✅
 - ~~C3: Add asymmetric markup adjustment per ADR-0010~~ ✅
-- C7/S5/G1: Add Leontief I-O production function requirement per ADR-0009
+- ~~C7/S5/G1: Add Leontief I-O production function requirement per ADR-0009~~ ✅
 - G3/G4: Add MMT invariants (no financial constraint on spending, no sovereign default)
 - ~~S3/S4: "goods" to "sectors" (trivial fix)~~ ✅
 

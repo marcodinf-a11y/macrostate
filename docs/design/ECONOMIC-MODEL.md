@@ -14,11 +14,13 @@ The simulation uses double-entry bookkeeping for the entire economy. Every finan
 At the end of every simulation tick, the accounting identity must hold:
 
 ```
-Government balance + Private sector balance = 0
-(MVP: closed economy, no foreign sector)
-
-Full game:
 Government balance + Private sector balance + Foreign sector balance = 0
+```
+
+In a closed economy (no foreign sector), Foreign = 0 and this simplifies to:
+
+```
+Government balance + Private sector balance = 0
 ```
 
 This is not an assumption — it is enforced by the double-entry bookkeeping. Every dollar of government deficit is mechanically a dollar of private sector surplus.
@@ -132,7 +134,7 @@ The currency-issuing sovereign. The player controls this sector.
 
 > **Critical design rule:** The Treasury account balance never constrains government spending. The government, as currency issuer, can always spend by crediting bank reserve accounts. The Treasury balance is tracked for accounting purposes only — it is not a budget constraint. The real constraint on government spending is inflation (available real resources), not money.
 >
-> **Political constraints** (debt ceilings, balanced budget rules) are self-imposed policy choices, not operational limits. These are modeled in the policy constraint layer (post-MVP), not in the engine. See GAME-DESIGN.md Section 5.
+> **Political constraints** (debt ceilings, balanced budget rules) are self-imposed policy choices, not operational limits. These are modeled in the policy constraint layer, not in the engine. See GAME-DESIGN.md Section 5.
 
 **Actions:**
 - Spend money (creates currency) allocated to: infrastructure, public services, direct transfers
@@ -159,7 +161,7 @@ The government participates in the real economy through two channels:
 
 This distinction is central to the MMT argument. Transfers increase household income and create demand distributed across sectors via the AIDS consumption model. Infrastructure and public services directly absorb real resources — labor and sector output. The same dollar amount produces very different economic effects depending on its composition.
 
-The government's wage offers create a de facto wage floor. If the government pays 3,000/month for public service workers, private firms offering significantly less will lose workers. This demonstrates how fiscal policy sets an implicit minimum wage — a key MMT/post-Keynesian insight and the precursor to the Job Guarantee's role as a wage anchor (post-MVP).
+The government's wage offers create a de facto wage floor. If the government pays 3,000/month for public service workers, private firms offering significantly less will lose workers. This demonstrates how fiscal policy sets an implicit minimum wage — a key MMT/post-Keynesian insight and the precursor to the Job Guarantee's role as a wage anchor.
 
 ### Central Bank
 
@@ -168,11 +170,11 @@ Operates the reserve system and sets monetary policy.
 **Actions:**
 - Maintain reserve accounts for commercial banks
 - Set the policy interest rate (base rate)
-- Provide reserves to commercial banks on demand at the policy rate (lender of last resort / standing facility). Post-MVP: standing facility rate may differ from policy rate (corridor/floor system — see F10)
-- Buy/sell government bonds on secondary market (buyer of last resort)
-- In MVP: policy rate can default to 0
+- Provide reserves to commercial banks on demand at the policy rate (lender of last resort / standing facility). The standing facility rate may differ from the policy rate (corridor/floor system — see F10)
+- Buy/sell government bonds (open market operations)
+- Act as buyer of last resort at primary bond auctions
 
-Reserve provision ensures that bank lending is never constrained by reserve availability. Banks lend based on creditworthiness of borrowers and profitability, then obtain any needed reserves from the central bank (see [Bank Credit Creation](#bank-credit-creation-endogenous-money) above). In the MVP with a single aggregate bank, reserve provision is simplified (the single bank's reserves are the net result of government spending minus taxation, plus any central bank operations).
+Reserve provision ensures that bank lending is never constrained by reserve availability. Banks lend based on creditworthiness of borrowers and profitability, then obtain any needed reserves from the central bank (see [Bank Credit Creation](#bank-credit-creation-endogenous-money) above).
 
 ### Commercial Banks
 
@@ -191,11 +193,11 @@ Intermediate between the reserve and deposit circuits. Create credit.
 - Buy government bonds at auction
 - Earn interest on loans and bonds
 - Pay interest on deposits (if modeled)
-- Lending rate = central bank policy rate + risk-based spread
+- Lending rate = central bank policy rate + bank spread + risk premium
 
 Banking is modeled as financial intermediation, not as a production sector. Banks do not produce output that households consume. Their function is to create purchasing power (credit money) that enables real economic activity. This is consistent with the MMT/post-Keynesian SFC tradition (Godley & Lavoie) where the banking sector has a balance sheet and behavioral rules, not a production function. Bank revenue (interest spread) appears on balance sheets through interest flows, not through the AIDS demand system.
 
-### Households (3 Classes in MVP)
+### Households
 
 | Class | Characteristics |
 |---|---|
@@ -226,7 +228,7 @@ All firms are profit-driven: they estimate demand, consider costs, and make prod
 | **Construction** | Labor, manufactured materials, capital goods | Built structures, infrastructure | Highly cyclical, labor-intensive. Key channel for government infrastructure investment. |
 | **Services** | Labor, capital goods | Services (retail, transport, healthcare, education, hospitality, professional) | Labor-intensive, largest employment share. Heterogeneous but shares key input characteristics. |
 
-**Post-MVP sector expansion:** Sectors expand via a sub-sector hierarchy. Each top-level sector may contain sub-sectors with independent production functions and AIDS demand parameters. For example, Services may split into Healthcare, Education, Hospitality, and Professional Services. Sub-sectors are identified by a `parentId` field in `sectors.json`. The AIDS demand system extends naturally — a 4-sector parameter matrix becomes an 8-sector or 12-sector matrix.
+**Sector expansion:** Sectors expand via a sub-sector hierarchy. Each top-level sector may contain sub-sectors with independent production functions and AIDS demand parameters. For example, Services may split into Healthcare, Education, Hospitality, and Professional Services. Sub-sectors are identified by a `parentId` field in `sectors.json`. The AIDS demand system extends naturally — a 4-sector parameter matrix becomes an 8-sector or 12-sector matrix.
 
 **Balance sheet tracks:**
 - Deposit account at bank (asset)
@@ -270,13 +272,13 @@ Sectors consume each other's output as intermediate inputs. These linkages are d
 | **Construction** | — | high | — | low | high |
 | **Services** | low | low | — | — | high |
 
-The exact coefficients are data-driven, loaded from `sectors.json`. The matrix above shows qualitative magnitudes for the MVP.
+The exact coefficients are data-driven, loaded from `sectors.json`. The matrix above shows qualitative magnitudes.
 
 **Key properties:**
 - Supply shocks propagate through the matrix: a disruption in Agriculture constrains Manufacturing (raw materials), which constrains Construction (manufactured materials)
 - The matrix makes inter-sector dependencies explicit and produces emergent supply chain dynamics
 - Government procurement enters through this matrix — infrastructure spending creates demand in Construction, which pulls from Manufacturing
-- Coefficients are fixed in the short run; long-run technological change (coefficient drift) is a post-MVP enhancement
+- Coefficients are fixed in the short run; long-run technological change (coefficient drift) allows them to evolve over time
 
 This follows the Godley/Lavoie (2012) SFC modeling tradition and Sraffa's (1960) *Production of Commodities by Means of Commodities*. Input coefficients in `sectors.json` are Leontief technical coefficients, not Cobb-Douglas exponents.
 
@@ -393,9 +395,9 @@ Each household class has its own set of alpha, beta, and gamma parameters. This 
 
 ### Empirical Foundation
 
-AIDS parameters are among the most empirically estimated in all of economics. The MVP uses parameters sourced from published estimates based on US household expenditure data (Consumer Expenditure Survey, Bureau of Labor Statistics). Key references include AIDS estimates by income group using CEX data and USDA Economic Research Service food demand elasticity estimates.
+AIDS parameters are among the most empirically estimated in all of economics. Parameters are sourced from published estimates based on US household expenditure data (Consumer Expenditure Survey, Bureau of Labor Statistics). Key references include AIDS estimates by income group using CEX data and USDA Economic Research Service food demand elasticity estimates.
 
-Post-MVP, different country parameter sets (Germany, Brazil, Nigeria, etc.) can be loaded as scenario data files. Different countries have structurally different consumption patterns — a US economy is services-dominated (~77% of GDP) while a German economy has a significantly larger manufacturing share (~20% of GDP). These differences are captured entirely by different alpha, beta, gamma parameters.
+Different country parameter sets (Germany, Brazil, Nigeria, etc.) can be loaded as scenario data files. Different countries have structurally different consumption patterns — a US economy is services-dominated (~77% of GDP) while a German economy has a significantly larger manufacturing share (~20% of GDP). These differences are captured entirely by different alpha, beta, gamma parameters.
 
 ### Edge Cases
 
@@ -465,7 +467,7 @@ Banks create money through lending. Lending decisions are based on borrower cred
 Lending rate = Central bank policy rate + Bank spread + Risk premium
 
 Where:
-  Central bank policy rate: set by central bank (0 in MVP default)
+  Central bank policy rate: set by central bank
   Bank spread: bank's base profit margin on lending
   Risk premium: varies by borrower creditworthiness
 ```
@@ -476,7 +478,7 @@ Banks evaluate potential borrowers on:
 2. **Existing debt** — debt-to-income ratio. Higher existing debt -> higher risk -> higher premium or rejection.
 3. **Collateral** — for secured loans (mortgages), the value of the asset backing the loan.
 
-### Loan Types (MVP)
+### Loan Types
 - **Consumer loans** — short-term, unsecured. For households needing to cover expenses.
 - **Mortgages** — long-term, secured by housing. For household shelter needs.
 - **Business loans** — for firms investing in capital goods or covering operating costs.
@@ -496,7 +498,7 @@ When a loan is repaid:
 ### Defaults
 - If a borrower cannot service their debt, they default
 - Bank writes off the loan (loss)
-- If bank losses exceed equity, bank becomes insolvent (systemic risk — post-MVP)
+- If bank losses exceed equity, bank becomes insolvent (systemic risk)
 
 ## Government Bonds: Auction-Based
 
@@ -518,12 +520,12 @@ The game models the real-world procedure (auctions) while allowing players to ob
 - **Face value:** fixed denomination
 - **Coupon rate:** determined at auction (interest paid to holder)
 - **Maturity:** time until the government repays the face value
-- **Secondary market:** bond holders can sell bonds to other agents (post-MVP simplification: may be omitted initially)
+- **Secondary market:** bond holders can sell bonds to other agents
 
 ### Interest Payments
 - Government pays interest on outstanding bonds each period
 - This is government spending (creates new currency)
-- Interest payments flow to bond holders (banks in MVP; post-MVP secondary market enables household bond holding)
+- Interest payments flow to bond holders (banks, and households via secondary market)
 - This creates a distributional dynamic: deficit -> bonds -> interest -> flows to bond holders
 
 **Note on the fiscal channel of interest rate policy:** Higher interest rates increase government bond interest payments, which are themselves government spending (currency creation). This means higher rates have a stimulative fiscal effect — more income flows to bond holders — that partially offsets the contractionary effect on borrowing. This is a key reason MMT prefers fiscal policy (spending and taxation) over monetary policy (interest rates) for demand management. See Mosler (1993, 1995), Fullwiler (2006), Wray (2015) Ch. 5.
@@ -671,21 +673,4 @@ These are tracked and displayed to the player:
 | **Wage growth** | % change in average wages from previous period |
 | **Interest rates** | CB policy rate, bank lending rates, bond yields |
 
-## MVP Simplifications
-
-The MVP implements the full model above with these simplifications:
-
-| Aspect | MVP simplification | Full game target |
-|---|---|---|
-| Household classes | 3 fixed classes | 5+ classes or continuous spectrum |
-| Sector granularity | 4 top-level sectors | Sub-sector hierarchy (8-15 sectors) via parentId |
-| Foreign sector | None (closed economy) | Multiple AI nations with trade |
-| Bank competition | Single aggregate bank | Multiple competing banks |
-| Bond secondary market | No resale | Full secondary market |
-| Central bank policy rate | Fixed at 0 | Player-adjustable or rule-based |
-| Provinces | Single province | Multiple geographic provinces |
-| Firm heterogeneity | One representative firm per sector | Multiple competing firms per sector |
-| Wage negotiation | Simple posting/acceptance | Collective bargaining, contracts |
-| Government spending types | 3 (infrastructure, services, transfers) | More granular spending categories |
-| AIDS parameters | US-based estimates | Country-specific parameter sets |
-| Currency demand | Implicit — single currency, no alternative exists (Chartalism not modeled) | Explicit tax-driven currency demand for exchange rate dynamics |
+For MVP scoping and simplifications, see [MVP-SCOPE.md](../requirements/MVP-SCOPE.md).

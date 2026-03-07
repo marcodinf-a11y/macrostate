@@ -20,7 +20,7 @@ The player is the **Government / Sovereign** of one nation:
 - Issues the sovereign currency
 - Sets fiscal policy (spending levels, allocation, taxation)
 - Manages employment and public programs
-- Navigates trade relationships with AI nations (post-MVP)
+- Navigates trade relationships with AI nations
 
 Other nations are AI-controlled and react to the player's policies, creating geopolitical and economic dynamics.
 
@@ -67,7 +67,7 @@ When there is slack in the economy (unemployed workers, idle factories), spendin
 
 **In-game:** Resource utilization meters show how close each sector is to capacity. Spending into slack = more output. Spending into full capacity = inflation.
 
-### 5. Political Fiscal Constraints (post-MVP)
+### 5. Political Fiscal Constraints
 
 Real-world governments often impose political rules on their own spending — the US debt ceiling, Germany's Schuldenbremse (debt brake), balanced budget amendments, Maastricht criteria. These are not operational necessities — the currency-issuing government can always spend — they are self-imposed political choices with real economic consequences.
 

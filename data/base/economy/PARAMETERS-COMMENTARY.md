@@ -1,5 +1,7 @@
 # Parameter Commentary
 
+> **Note:** This file is incremental. Commentary is added as implementation phases are completed and new parameters enter `parameters.json`. Sections below cover only the parameters defined so far.
+
 This document explains the economic rationale behind every value in `parameters.json`. It serves two purposes:
 
 1. **For contributors:** Understand *why* a parameter has a particular value, not just what the value is.

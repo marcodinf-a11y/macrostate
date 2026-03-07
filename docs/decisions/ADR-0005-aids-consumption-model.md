@@ -23,7 +23,7 @@ Key design consequences of adopting AIDS:
 
 - **Dropped the goods abstraction.** Goods are replaced by a hierarchical sector structure (sectors with `parentId` for post-MVP sub-sector expansion).
 - **No subsistence floor.** Welfare state is explicit policy, not hidden in consumption math.
-- **Restructured sectors** from 3 (agriculture, industry, services) to 4 (agriculture & primary, manufacturing, construction, services) to match standard macroeconomic textbook aggregation.
+- **Restructured sectors** from 3 (agriculture, industry, services) to 4 (agriculture & primary, manufacturing, construction, services) to match standard macroeconomic textbook aggregation. Construction was split from manufacturing because it has distinct economic characteristics: it is the primary channel for government infrastructure investment (capital formation), is highly cyclical and labor-intensive, and its output (built structures) differs fundamentally from portable manufactured goods.
 - **Added government as direct employer and procurer** (`IGovernmentDemand` interface) — government competes in the labor market and procures from private sectors, creating visible real resource competition central to MMT.
 
 ## Consequences

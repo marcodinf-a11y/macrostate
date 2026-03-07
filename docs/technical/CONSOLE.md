@@ -223,7 +223,7 @@ sfc repair                           # Attempts to restore consistency by adjust
 
 ## Mod-Extensible Commands
 
-Mods can register custom commands through the plugin API (post-MVP):
+Mods can register custom commands through the plugin API:
 
 ```csharp
 public class MyMod : IGameMod
@@ -238,27 +238,4 @@ public class MyMod : IGameMod
 
 Users can then type `stockmarket status` or `ipo create TechCorp 1000000` in the console.
 
-## MVP Scope
-
-For the MVP, the console includes:
-
-**In MVP:**
-- Console UI (toggle with `~`, text input, scrollable output)
-- `query` commands for all simulation state
-- `set` commands for government policy (spending, allocation, tax rate)
-- `spend` and `tax` one-time operation commands
-- `balance` commands for all sectors
-- `sfc check` for consistency verification
-- `pause`, `resume`, `speed`, `tick` time controls
-- `help` system
-- `run` for basic script execution
-- Command history (up/down arrow)
-
-**Not in MVP:**
-- Tab completion
-- Wildcard queries (`*`, `**`)
-- Agent spawn/remove commands
-- CSV export
-- Mod command registration
-- `--force` flag for unsafe writes
-- `sfc repair`
+For MVP console scope, see [MVP-SCOPE.md](../requirements/MVP-SCOPE.md#console).

@@ -93,7 +93,9 @@ Phase 15: Balancing & Polish
 
 **Dependencies:** None
 
-**Definition of done:** `dotnet build` succeeds, `dotnet test` runs with smoke test passing, test infrastructure classes exist, Godot opens the project without errors.
+**Skeleton scope note:** `InMemoryDataProvider`, `SimulationTestHarness`, and `TestDataBuilder` are created in Phase 0 as empty skeletons — they compile and have the correct interfaces/signatures but contain no real logic. Phase 1 completes `InMemoryDataProvider` (register/retrieve data objects) and adds methods to `TestDataBuilder` as data model classes are defined. `SimulationTestHarness` grows incrementally through subsequent phases as new subsystems are built.
+
+**Definition of done:** `dotnet build` succeeds, `dotnet test` runs with smoke test passing, test infrastructure classes exist as compilable skeletons, Godot opens the project without errors.
 
 ---
 
@@ -146,7 +148,7 @@ Phase 15: Balancing & Polish
 
 **Dependencies:** Phase 0
 
-**Definition of done:** All 18 tests pass. Base game data files exist and validate. Test fixtures exist for all categories. `InMemoryDataProvider` works for test use.
+**Definition of done:** All 18 tests pass. Base game data files exist and validate. Test fixtures exist for all categories. `InMemoryDataProvider` is fully functional (completing the Phase 0 skeleton). `TestDataBuilder` has builder methods for all data model classes defined in this phase.
 
 ---
 
@@ -287,6 +289,12 @@ Phase 15: Balancing & Polish
 5. Implement `GovernmentDemand` — spending-to-resource mapping per Architecture §3.14 (public employment postings, sector procurement demand, from `IDataProvider`)
 6. Implement `GoodsMarket` — receive AIDS demand vector + government procurement, match against sector inventory/capacity, rationing when demand exceeds supply
 7. Wire all transactions through the Ledger
+8. Implement wage stickiness mechanism per ECONOMIC-MODEL.md "Wage Dynamics":
+   - Wages adjust asymmetrically: upward when labor is scarce (firms compete), downward slowly when labor is abundant (downward rigidity)
+   - Per-sector wage adjustment: `Wage_t+1 = Wage_t × (1 + adjustmentSpeed × pressureSignal)` where `pressureSignal` reflects sector vacancy rate, profitability, and labor scarcity
+   - `adjustmentSpeed` differs by direction: `wageUpwardSpeed` (fast, e.g., 0.3) vs `wageDownwardSpeed` (slow, e.g., 0.05) — parameters from `IDataProvider`
+   - Government wages adjust even more slowly (civil service stickiness), using a separate `publicWageAdjustmentSpeed` from `IDataProvider`
+   - Workers move between sectors gradually over 1-3 ticks (cross-sector mobility lag from `IDataProvider`)
 
 **REFACTOR:** Extract market interfaces for testability. Simplify pricing calculation chain.
 

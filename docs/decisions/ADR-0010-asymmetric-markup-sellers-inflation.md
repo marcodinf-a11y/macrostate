@@ -44,4 +44,4 @@ The supply pressure factor uses the same asymmetric adjustment speeds — it rat
 - `sectors.json` gains two new per-sector parameters: `markupUpwardSpeed` and `markupDownwardSpeed`.
 - Supply shocks now cause persistent inflation that does not resolve just by cutting demand — the player must address the supply side or wait for the slow markup decay.
 - The Leontief I-O matrix (ADR-0009) provides the input availability data that feeds the supply pressure factor — the two mechanisms compose naturally.
-- The three inflation buffers remain intact; seller's inflation is an additional inflation source, not a replacement.
+- The three inflation buffers — (1) productivity gains, (2) demand slack / idle capacity, and (3) profit margin compression (see [ECONOMIC-MODEL.md, Three Buffers Against Inflation](../design/ECONOMIC-MODEL.md#three-buffers-against-inflation)) — remain intact; seller's inflation is an additional inflation source, not a replacement.

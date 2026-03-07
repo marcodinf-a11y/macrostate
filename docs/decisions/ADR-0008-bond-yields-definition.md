@@ -6,6 +6,8 @@
 
 FR-SIM-004 lists "bond yields" as a required economic indicator. But the PRD explicitly excludes "bond secondary market" from scope (Section 4). Without a secondary market, there is no market price for bonds, and the traditional yield-to-maturity calculation (based on market price vs. face value) is meaningless. The "yield" indicator risks being either redundant with the coupon rate or misleading.
 
+This decision depends on [ADR-0003](ADR-0003-banks-only-bond-auctions.md), which restricts primary bond auctions to commercial banks only. With banks as the sole auction participants, varying coupon rates across issuances are driven entirely by bank bidding behavior — household demand plays no role in rate determination.
+
 ## Decision
 
 Define "bond yields" as the **weighted average coupon rate** across outstanding bonds — the government's average cost of debt.

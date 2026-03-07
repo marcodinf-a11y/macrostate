@@ -30,7 +30,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
 #### FR-SIM-001: Stock-Flow Consistent Accounting
 - The simulation must use double-entry bookkeeping for all financial transactions
 - Every monetary flow must have an explicit source and destination
-- The accounting identity (Government balance + Private balance = 0) must hold every tick
+- The accounting identity (Government balance + Private balance = 0) must hold every tick. The central bank is consolidated with the government sector for SFC purposes (Treasury + CB = government sector); the private sector includes households, firms, and commercial banks. This is standard SFC convention per Godley & Lavoie (2012).
 - An SFC consistency check must be runnable at any time and must pass
 
 #### FR-SIM-002: Two Money Circuits
@@ -58,7 +58,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
   - Public sector employment share
   - Private debt level
   - Bank reserves
-  - Bond yields (weighted average coupon rate across outstanding bonds; no secondary market in MVP)
+  - Bond yields (weighted average coupon rate across outstanding bonds)
   - Savings rate
   - Wage growth
 
@@ -73,12 +73,24 @@ An open source, single-player economic simulation game built on Modern Monetary 
 - Must employ workers directly (public sector employment) competing in the labor market alongside firms
 - Must procure goods and services from private sectors based on spending allocation (infrastructure -> construction/manufacturing demand, public services -> services/manufacturing demand)
 - Must track public sector employment separately from private employment
+- Government wage rates must be set by a data-driven pay scale that adjusts more slowly than private sector wages (civil service stickiness)
+- Government procurement must create demand in private sectors: infrastructure spending generates construction and manufacturing demand; public services spending generates services and manufacturing demand
 - Direct transfers must create no direct resource demand — money flows to households who spend via AIDS demand system
+- Government spending must never be rejected or constrained based on Treasury account balance (the real constraint is inflation, not money)
+- Government must always pay bond interest and principal when due — sovereign default on domestic-currency debt must not be modeled
+
+#### FR-AGT-001a: Sovereign Currency Invariants
+The following invariants must hold unconditionally in the simulation engine. They are not policy choices — they are operational properties of a sovereign currency-issuing government per MMT:
+
+- **INV-GOV-001: No financial constraint on spending.** The Treasury account balance never constrains government spending. The government, as currency issuer, can always spend by crediting bank reserve accounts. The real constraint on government spending is inflation (available real resources), not money. (See ECONOMIC-MODEL.md, Government section.)
+- **INV-GOV-002: No sovereign default.** The government, as currency issuer, always pays bond interest and principal when due. Sovereign default on domestic-currency-denominated debt is never an operational necessity. The game does not model voluntary default. (See ECONOMIC-MODEL.md, Bonds section.)
+
+Political fiscal constraints (debt ceilings, balanced budget rules) are self-imposed policy choices modeled in the policy constraint layer, not in the engine. See GAME-DESIGN.md Section 5.
 
 #### FR-AGT-002: Central Bank
 - Must maintain reserve accounts for commercial banks
 - Must maintain the Treasury account
-- Must have a policy interest rate (fixed at 0 for MVP)
+- Must have a policy interest rate
 - Must act as buyer of last resort for government bonds
 
 #### FR-AGT-003: Commercial Banks
@@ -90,13 +102,15 @@ An open source, single-player economic simulation game built on Modern Monetary 
 - Must buy government bonds at auction
 - Must track: reserves, loans outstanding, deposits, bonds held, equity
 
-#### FR-AGT-004: Households (3 Classes)
-- Must exist in three classes: low income, middle income, high income
+#### FR-AGT-004: Households
+- Must exist in multiple income classes (low income, middle income, high income, and potentially more)
 - Each class must have different: consumption patterns, saving rates, reservation wages, debt capacity
 - Must consume according to the AIDS (Almost Ideal Demand System) — budget shares across sectors determined by income level and sector prices
 - Each class must have distinct AIDS parameters (alpha, beta, gamma) reflecting empirically different consumption patterns
 - Price elasticity and income elasticity must emerge from the AIDS parameters, not be hardcoded separately
 - Budget shares must sum to 1 for each household class (adding-up constraint)
+- Disposable income for each household class must be calculated as: post-tax income + available credit - debt service payments
+- AIDS parameters must be validated on load: adding-up (`SUM(alpha)=1`, `SUM(gamma)=0`, `SUM(beta)=0`), homogeneity (`SUM_j(gamma_ij)=0`), and symmetry (`gamma_ij=gamma_ji`) constraints must hold
 - Must supply labor to firms and government
 - Must accept/reject job offers based on reservation wage
 - Must be able to take on debt (consumer loans, mortgages)
@@ -105,6 +119,8 @@ An open source, single-player economic simulation game built on Modern Monetary 
 #### FR-AGT-005: Firms (4 Sectors)
 - Must exist in four sectors: agriculture & primary, manufacturing, construction, services
 - Each sector must have different input/output mixes
+- Must use Leontief (fixed-proportion) production functions: each unit of output requires fixed quantities of each input, with no substitution between inputs
+- Must use inter-sector input-output coefficients loaded from data files to define supply chain linkages (ADR-0009)
 - Must make profit-driven production decisions (estimate demand, consider costs)
 - Must post wages and hire workers
 - Must set prices using cost-plus markup with demand adjustment
@@ -129,7 +145,12 @@ An open source, single-player economic simulation game built on Modern Monetary 
 - Supply-side markup pressure (seller's inflation) must operate independently of the demand buffers: when input availability drops, firms must raise markups using a supply pressure factor (normal input availability / actual input availability) (ADR-0010)
 - The supply pressure factor must use the same asymmetric adjustment speeds as demand-driven markup changes
 
-#### FR-PRC-003: Inflation Measurement
+#### FR-PRC-003: Rationing
+- When aggregate demand for a sector's output exceeds available supply (inventory + current production), supply must be rationed across buyers
+- Unmet demand must feed into the next tick's price adjustments via the pricing engine (demand pressure signal)
+- Rationing must apply to both household consumption demand and government procurement demand
+
+#### FR-PRC-004: Inflation Measurement
 - Inflation must be measured as percentage change in average price level between ticks
 - Price level must be a weighted average across all sectors
 - Sector-specific price changes must be trackable separately
@@ -165,7 +186,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
 
 #### FR-BNK-003: Loan Types
 - Consumer loans: short-term, unsecured, for household expenses
-- Mortgages: long-term, secured by housing, for shelter needs
+- Mortgages: long-term, secured by housing, for shelter needs. _MVP simplification: housing is not modeled as an explicit asset class. Mortgage collateral value is a fixed notional amount per household class. A housing market with price dynamics is a post-MVP enhancement._
 - Business loans: for firm capital investment and operating costs
 
 #### FR-BNK-004: Debt Service and Default
@@ -177,7 +198,8 @@ An open source, single-player economic simulation game built on Modern Monetary 
 
 #### FR-BND-001: Auction-Based Issuance
 - Government must issue bonds via auction
-- Commercial banks must be able to bid (households acquire bonds post-MVP via secondary market)
+- Commercial banks must be able to bid at primary auctions
+- Households may acquire bonds via secondary market (full vision — not in MVP)
 - Bond interest rate must be determined by auction demand
 - Central bank must act as buyer of last resort (can buy unsold bonds)
 
@@ -196,7 +218,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
 #### FR-INV-002: Private Investment
 - Firms must invest in capital goods to maintain/expand capacity
 - Investment must be funded from retained profits and/or bank loans
-- Capital goods must be produced by the manufacturing sector
+- Capital goods must be produced by the manufacturing sector (enters sector demand via the Leontief I-O matrix; see ADR-0009)
 - Capital must depreciate over time
 
 ### 2.8 Time and Lags
@@ -207,6 +229,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
 - Spending reallocation must take effect after 2-3 ticks
 - Infrastructure effects must materialize over 6-12 ticks
 - Public services effects must materialize over 12-24 ticks
+- If a policy parameter is changed while a previous change for the same parameter is still pending, the new value replaces the pending value and the lag timer resets (ADR-0002)
 
 #### FR-TIM-002: Economic Lags
 - Wage adjustments: 1-3 ticks
@@ -224,6 +247,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
 #### FR-CTL-001: Policy Levers
 - Player must be able to set total government spending level
 - Player must be able to allocate spending across: infrastructure, public services, direct transfers
+- Spending allocation determines both public sector employment costs (wages for government workers) and procurement demand placed on private sectors. The total spending level is the budget; the allocation determines how it divides between government payroll and sector procurement within each category.
 - Player must be able to set a single income tax rate
 - All controls must be adjustable at any time (including while paused)
 
@@ -272,7 +296,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
 - Must clearly indicate when sectors are at or near capacity
 
 #### FR-UI-005: Map View
-- Must display a simple single-province map (cosmetic for MVP)
+- Must display a map with provinces
 - Must establish the visual direction for future geographic expansion
 
 #### FR-UI-006: Time Controls
@@ -391,6 +415,7 @@ Examples:
 - An `InMemoryDataProvider` must exist for tests, allowing data to be registered in memory instead of read from disk
 - The simulation must be constructable and runnable headlessly (no UI, no Godot, pure C#)
 - All randomness must use a seeded `IRandom` interface for deterministic, reproducible tests
+- The Game Controller must record a policy input log — a list of `(tick, command)` pairs — enabling deterministic replay for SFC error recovery (ADR-0004) and post-MVP save/load (ADR-0006)
 
 #### NFR-CQA-003: Test-Driven Development Methodology
 - All simulation engine code must be developed using TDD (red-green-refactor cycle)
@@ -425,7 +450,7 @@ Examples:
 #### NFR-DTA-001: SFC Guarantee
 - The simulation must never produce an SFC imbalance during normal operation
 - If an imbalance is detected, it must be logged and flagged as a bug
-- On SFC failure, the simulation must pause and present the player with a choice: continue with the inconsistent state, or restore to the last consistent state via deterministic replay
+- On SFC failure, the simulation must pause and present the player with a choice: continue with the inconsistent state, or restore to the last consistent state via deterministic replay (ADR-0004)
 
 ### 3.6 Usability
 
@@ -437,47 +462,4 @@ Examples:
 - The relationship between policy changes and economic outcomes must be visible through the UI (charts, pipeline indicators)
 - The player must never be confused about what their policy changes are doing
 
-## 4. MVP Definition of Done
-
-The MVP is complete when:
-
-1. **SFC accounting works** — all transactions are double-entry; balances always sum to zero
-2. **Two money circuits visible** — reserves and deposits tracked and displayable
-3. **Policy controls work** — player can adjust spending, allocation, and tax rate
-4. **Money circuit flows** — government spending creates currency; taxation destroys it
-5. **Production runs** — firms produce based on profit-driven decisions; households consume via AIDS demand system
-6. **Labor market functions** — firms post wages, households accept/reject, unemployment emerges naturally
-7. **Bank lending works** — banks create money via loans; repayments destroy it
-8. **Bond auctions work** — government issues bonds; banks bid; CB backstops
-9. **Inflation responds correctly** — driven by unit labor costs and demand pressure, not raw spending
-10. **Charts update live** — all key indicators chart in real-time
-11. **Scenario playable** — one scenario with win/lose conditions completable
-12. **Sandbox works** — free experimentation mode with full dashboard
-13. **Pause and speed controls work** — player can control simulation flow
-
-## 5. Out of Scope (MVP)
-
-The following are explicitly not part of the MVP:
-
-| Feature | Reason for deferral |
-|---|---|
-| Job Guarantee program | Build basic employment dynamics first |
-| Foreign sector / trade / sectoral balances (3-sector) | Requires foreign sector |
-| Multiple economies / AI nations | Focus on domestic dynamics first |
-| Multiple provinces / geographic map gameplay | One province proves the economic model |
-| Individual agent simulation (household classes only) | Household classes sufficient for MVP |
-| Monetary policy (CB rate changes) | CB rate fixed at 0 in MVP |
-| Multiple tax types | Single income tax; progressive/sales/wealth taxes later |
-| Bond secondary market | No resale in MVP |
-| Multiple competing banks | Single aggregate bank in MVP |
-| Bank insolvency / systemic crisis mechanics | Defaults tracked but no systemic crisis modeling |
-| Collective bargaining / wage contracts | Simple wage posting only |
-| 5+ household classes or continuous income spectrum | 3 classes in MVP; continuous spectrum later |
-| Sub-sector hierarchy | 4 top-level sectors sufficient for MVP; sub-sector expansion post-MVP |
-| Mod loader / mod management UI | Data-driven JSON modding sufficient for MVP |
-| Plugin API for code mods | Data-driven JSON modding sufficient for MVP |
-| Multiplayer | Single-player focus for MVP |
-| Tutorial / guided onboarding | Sandbox and scenario modes provide sufficient onboarding |
-| Save/load game state | Deterministic simulation + short sessions; full state serialization deferred to post-MVP (high priority) |
-| Sound / music | Gameplay mechanics first; polish later |
-| Localization | English only for MVP |
+For MVP scoping, definition of done, and out-of-scope features, see [MVP-SCOPE.md](MVP-SCOPE.md).

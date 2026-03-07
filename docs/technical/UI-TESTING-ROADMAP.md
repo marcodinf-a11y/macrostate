@@ -1,9 +1,9 @@
 # UI Testing Roadmap
 
-**Status:** Future side project — not required for MVP
+**Status:** Future side project
 **Context:** ADR-0007 (manual UI testing with scoped testability contract)
 
-## Current State (MVP)
+## Current State
 
 Presentation-layer FR groups (FR-UI, FR-CON, FR-GMD, FR-CTL-002) use manual verification for Godot-specific behavior. Automated tests exist only where logic is separable from the engine:
 
@@ -13,7 +13,7 @@ Presentation-layer FR groups (FR-UI, FR-CON, FR-GMD, FR-CTL-002) use manual veri
 | Scenario win/lose detection | Headless via `SimulationTestHarness` | Phase 13 |
 | Policy signal wiring | Console-based integration scripts | Phase 10 |
 
-This is sufficient for MVP because the simulation engine — where all economic logic lives — is fully TDD-tested (Phases 2–8). The UI is a thin read/write layer over `ISimulationState` and `ISimulationCommands`.
+This is sufficient because the simulation engine — where all economic logic lives — is fully TDD-tested (Phases 2-8). The UI is a thin read/write layer over `ISimulationState` and `ISimulationCommands`.
 
 ## What Full Automated UI Testing Requires
 
@@ -98,7 +98,7 @@ Not everything needs automated tests. Priority order:
 
 ### 6. Estimated Scope
 
-This is a side project, not a prerequisite for MVP. Rough breakdown:
+This is a side project. Rough breakdown:
 
 - **Setup (GdUnit4 + headless CI):** Get one test running end-to-end in CI
 - **Console tests:** Command parser unit tests + query output tests

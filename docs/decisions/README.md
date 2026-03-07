@@ -18,3 +18,5 @@ Each ADR follows: Title, Status, Context, Decision, Consequences.
 | [ADR-0006](ADR-0006-deferred-save-load.md) | Deferred save/load with replay-log approach | Accepted |
 | [ADR-0007](ADR-0007-manual-ui-testing.md) | Manual UI testing with scoped testability contract | Accepted |
 | [ADR-0008](ADR-0008-bond-yields-definition.md) | Bond yields as weighted average coupon rate | Accepted |
+| [ADR-0009](ADR-0009-leontief-io-production-function.md) | Leontief I-O production function | Accepted |
+| [ADR-0010](ADR-0010-asymmetric-markup-sellers-inflation.md) | Asymmetric markup adjustment and seller's inflation | Accepted |

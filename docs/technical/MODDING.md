@@ -123,7 +123,7 @@ The base game is structured as data files that the mod system can override:
 data/
 └── base/
     ├── economy/
-    │   ├── sectors.json          # Sector definitions (4 MVP sectors)
+    │   ├── sectors.json          # Sector definitions
     │   ├── consumption.json      # AIDS parameters per household class
     │   ├── production.json       # Leontief input-output coefficients per sector
     │   └── parameters.json       # Global economic parameters
@@ -255,7 +255,7 @@ Each data file specifies its merge strategy:
 - **Declared conflict**: both mods cannot be active; user must choose
 - **Undeclared conflict** (same field modified by two mods): last in load order wins (user can reorder)
 
-## Plugin API (Post-MVP)
+## Plugin API
 
 The plugin API will provide these hook points:
 
@@ -282,23 +282,4 @@ The plugin API will provide these hook points:
 - `RegisterScenario(ScenarioDefinition)` — add new scenarios
 - `RegisterUIPanel(UIPanelDefinition)` — add new UI panels
 
-## MVP Scope
-
-For the MVP, the modding infrastructure is limited to the **data-driven foundation**:
-
-**In MVP:**
-- All game data loaded from JSON files in `data/base/`
-- No hardcoded economic parameters, sector definitions, or scenario data
-- Clean separation between data and logic in the codebase
-- Data schema validated on load
-- Base game structured as if it were a mod (same file format, same loading path)
-
-**Not in MVP:**
-- Mod loader (modders can edit `data/base/` directly to test)
-- Mod manifest system
-- Override/merge mechanics
-- Dependency resolution
-- Plugin API and event hooks
-- Mod management UI
-
-The key MVP deliverable is the **architecture**: the game must be designed so that adding the mod loader later is a matter of adding a new data source, not restructuring the entire codebase.
+For MVP modding scope, see [MVP-SCOPE.md](../requirements/MVP-SCOPE.md#modding).

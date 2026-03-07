@@ -130,7 +130,7 @@ Godot scenes and nodes that render the game and handle player input. These nodes
 
 **Balance Sheet View** — Table display of sector balance sheets
 
-**Map View** — 2D map rendering (cosmetic in MVP)
+**Map View** — 2D map rendering
 
 **Console** — Text input/output overlay, command parsing, help system
 
@@ -168,7 +168,7 @@ public interface ISimulationState
 ```
 
 `SectorBalanceSheets` provides aggregated balance sheets keyed by `EconomicSector`. Aggregation rules:
-- **Government, CentralBank, Banking:** return the single agent's balance sheet directly (no computation in MVP — each sector has exactly one agent).
+- **Government, CentralBank, Banking:** return the single agent's balance sheet directly.
 - **Households:** sum `Assets` and `Liabilities` dictionaries across all household classes; `OwnerId` = `"Households"`.
 - **Firms:** sum `Assets` and `Liabilities` dictionaries across all firm sectors; `OwnerId` = `"Firms"`.
 
@@ -234,13 +234,13 @@ public interface IGovernmentState
 
 public interface ICentralBankState
 {
-    /// Fixed at 0 for MVP.
+    /// The base rate set by the central bank.
     decimal PolicyRate { get; }
     decimal TreasuryAccountBalance { get; }
     IBalanceSheet BalanceSheet { get; }
 }
 
-/// MVP models a single aggregate commercial bank (see L11).
+/// Aggregate commercial banking sector (see L11).
 /// IBankingState describes banking-sector state, not the agent directly.
 public interface IBankingState
 {
@@ -310,7 +310,7 @@ public interface IEconomicIndicators
     decimal BankReserves { get; }
     /// Public sector workers / Total employed workers.
     decimal PublicSectorEmploymentShare { get; }
-    /// Weighted average coupon rate across outstanding bonds (no secondary market in MVP).
+    /// Weighted average coupon rate across outstanding bonds.
     /// Formula: Σ(bond.CouponRate × bond.FaceValue) / Σ(bond.FaceValue). Returns 0 when no bonds outstanding.
     /// Pedagogically valuable: demonstrates the MMT insight that bond rates are policy-influenced
     /// (CB buyer-of-last-resort per FR-BND-001 effectively sets a rate ceiling).
@@ -504,6 +504,34 @@ public interface IInvestmentEngine
 }
 ```
 
+**Investment mechanics:**
+
+Public investment translates spending into capacity or productivity via `IPolicyPipeline` lags:
+
+```
+// Infrastructure → capacity (lag: 6-12 ticks per FR-TIM-001)
+ΔCapacity_sector += InfrastructureSpending × CapacityMultiplier_sector
+
+// Public services → productivity (lag: 12-24 ticks per FR-TIM-001)
+ΔProductivity_sector += ServicesSpending × ProductivityMultiplier_sector
+```
+
+Private investment is demand-driven. Firms invest when capacity utilization exceeds `capacityUtilizationThreshold` (from `IDataProvider`, default 0.85). Capital goods are purchased from the manufacturing sector:
+
+```
+// Firm decides to invest when utilization > threshold
+InvestmentAmount = f(expectedDemandGrowth, availableFunds, borrowingCost)
+ΔCapacity_firm += InvestmentAmount / CapitalCostPerUnit_sector
+```
+
+Funding comes from retained profits or bank credit (Phase 5). All capital depreciates each tick at sector-specific rates from `IDataProvider`:
+
+```
+Capital_t+1 = Capital_t × (1 - depreciationRate_sector)
+```
+
+See ECONOMIC-MODEL.md "Investment" section for the full economic rationale.
+
 ### 3.10 Pricing Engine
 
 The `PricingEngine` implements FR-PRC-002's three-buffer inflation model — the central mechanism distinguishing MMT's view of inflation from mainstream models. Inflation only occurs when all three buffers are exhausted.
@@ -540,8 +568,22 @@ public interface IPricingEngine
 **Data-driven parameters** (per sector, loaded from `IDataProvider`):
 - `BaseMarkup` — starting markup rate for the sector
 - `MinimumMarkup` — floor below which markup cannot be compressed
-- `MarkupAdjustmentSpeed` — how quickly markup adjusts per tick (FR-TIM-002 behavioral lag)
+- `MarkupUpwardSpeed` — how quickly markup increases per tick (e.g., 0.5 — fast)
+- `MarkupDownwardSpeed` — how quickly markup decreases per tick (e.g., 0.1 — slow)
 - `CapacityThreshold` — utilization level above which demand pressure raises markup
+
+**Markup convergence formula (per tick):**
+
+Markup adjusts asymmetrically toward a target determined by demand and supply pressure (per ADR-0010):
+
+```
+TargetMarkup = BaseMarkup × DemandAdjustmentFactor × SupplyPressureFactor
+speed = (TargetMarkup > CurrentMarkup) ? MarkupUpwardSpeed : MarkupDownwardSpeed
+CurrentMarkup += speed × (TargetMarkup - CurrentMarkup)
+CurrentMarkup = max(CurrentMarkup, MinimumMarkup)
+```
+
+Where `DemandAdjustmentFactor > 1` when capacity utilization exceeds `CapacityThreshold`, and `SupplyPressureFactor = NormalInputAvailability / ActualInputAvailability` (> 1 when inputs are scarce). Both factors use the same asymmetric speeds — they ratchet up fast but decay slowly. See ADR-0010 for rationale.
 
 **Phase:** Market Phase (before household purchasing). See Section 4.1 tick data flow.
 
@@ -909,6 +951,9 @@ game/
 │   │       ├── FullBase/             # Copy of data/base/ for integration tests
 │   │       ├── InvalidData/          # Malformed files for error handling tests
 │   │       └── Scenarios/            # Specific economic states (high-inflation, etc.)
+│   │
+│   └── Game.Tests/                  # UI/Godot integration tests (deferred — see UI-TESTING-ROADMAP.md)
+│       └── Game.Tests.csproj        # Created when GdUnit4 setup begins; not part of MVP phases
 │
 ├── data/
 │   └── base/                         # Base game data (JSON files)
@@ -940,7 +985,7 @@ game/
 │   │   └── PRD.md
 │   ├── technical/
 │   │   ├── ARCHITECTURE.md
-│   │   ├── IMPLEMENTATION-PLAN.md
+│   │   ├── MVP-IMPLEMENTATION-PLAN.md
 │   │   ├── CONSOLE.md
 │   │   └── MODDING.md
 │   └── reviews/
@@ -1051,7 +1096,7 @@ Paths are dot-separated, lowercase segments. Property names use **camelCase** ve
 | `centralbank` | `ICentralBankState` | — |
 | `bank` | `IBankingState` | — |
 | `firms.<sectorId>` | `IFirmSectorState` | `SectorId` (e.g., `agriculture`, `manufacturing`, `construction`, `services`) |
-| `households.<classId>` | `IHouseholdClassState` | `ClassId` (e.g., `low`, `middle`, `high`) |
+| `households.<classId>` | `IHouseholdClassState` | `ClassId` (e.g., `low_income`, `middle_income`, `high_income`) |
 | `indicators` | `IEconomicIndicators` | — |
 
 **Example paths and return types:**
@@ -1071,9 +1116,9 @@ Paths are dot-separated, lowercase segments. Property names use **camelCase** ve
 | `government.publicSectorEmployment` | Total public sector employees | `int` |
 | `government.governmentWageRate` | Public sector wage rate | `decimal` |
 | `government.procurementBySector` | Procurement demand per sector | `IReadOnlyDictionary<string, decimal>` |
-| `households.low.employed` | Low-class employed count | `int` |
-| `households.low.budgetShares` | Low-class AIDS budget shares per sector | `IReadOnlyDictionary<string, decimal>` |
-| `households.low.consumptionBySector` | Low-class nominal spending per sector | `IReadOnlyDictionary<string, decimal>` |
+| `households.low_income.employed` | Low-income class employed count | `int` |
+| `households.low_income.budgetShares` | Low-income class AIDS budget shares per sector | `IReadOnlyDictionary<string, decimal>` |
+| `households.low_income.consumptionBySector` | Low-income class nominal spending per sector | `IReadOnlyDictionary<string, decimal>` |
 | `indicators.gdp` | Current GDP | `decimal` |
 | `indicators.inflationRate` | Current inflation rate | `decimal` |
 | `indicators.publicSectorEmploymentShare` | Public / total employment | `decimal` |
@@ -1149,7 +1194,7 @@ Godot and some game engines push ECS. We use a more traditional OOP agent model 
 
 ### 8.3 Single-Threaded Simulation
 
-The simulation runs on a single thread. Multi-threading adds complexity and is unnecessary for the MVP:
+The simulation runs on a single thread. Multi-threading adds complexity and is unnecessary at this scale:
 - Monthly ticks are sequential by nature (phases depend on previous phases)
 - Household classes (not individual agents) keep the computation manageable
 - Godot's main thread handles rendering; simulation can run on a background thread if needed later

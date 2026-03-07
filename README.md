@@ -39,7 +39,7 @@ See [docs/technical/MODDING.md](docs/technical/MODDING.md) for the full modding 
 
 ## Current Status
 
-**Requirements gathering phase.** See [docs/design/GAME-DESIGN.md](docs/design/GAME-DESIGN.md) for the game design document, [docs/requirements/PRD.md](docs/requirements/PRD.md) for requirements and MVP scope, and [docs/design/ECONOMIC-MODEL.md](docs/design/ECONOMIC-MODEL.md) for the simulation model.
+**Requirements gathering phase.** See [docs/design/GAME-DESIGN.md](docs/design/GAME-DESIGN.md) for the game design document, [docs/requirements/PRD.md](docs/requirements/PRD.md) for requirements, [docs/requirements/MVP-SCOPE.md](docs/requirements/MVP-SCOPE.md) for MVP scope, and [docs/design/ECONOMIC-MODEL.md](docs/design/ECONOMIC-MODEL.md) for the simulation model.
 
 ## License
 
