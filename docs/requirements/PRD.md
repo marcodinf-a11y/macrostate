@@ -327,7 +327,9 @@ An open source, single-player economic simulation game built on Modern Monetary 
 
 ### 2.14 Testability Contract
 
-Every functional requirement group must be covered by automated tests. Tests follow the naming convention:
+Every simulation-engine functional requirement group must be covered by automated tests. Presentation-layer FR groups (FR-UI, FR-CON, FR-GMD, FR-CTL-002) use manual verification for Godot-specific behavior, with automated tests where the logic is separable from the engine (e.g., command parsing, scenario win/lose detection). See `docs/technical/UI-TESTING-ROADMAP.md` for the path toward full automated UI testing.
+
+Tests follow the naming convention:
 
 ```
 [RequirementId]_[Scenario]_[ExpectedResult]

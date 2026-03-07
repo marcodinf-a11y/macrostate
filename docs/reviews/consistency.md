@@ -416,6 +416,8 @@ The PRD's own test coverage mapping table (Section 2.14) also omits these groups
 
 **Suggested resolution:** Amend the PRD's testability contract to scope it to simulation-engine FR groups, or add automated tests for at least: console command parsing (easily unit testable), scenario win/lose detection (testable headlessly), and policy change signal wiring.
 
+**Resolution:** Scoped the PRD Section 2.14 testability contract to simulation-engine FR groups. Presentation-layer FR groups (FR-UI, FR-CON, FR-GMD, FR-CTL-002) use manual verification for Godot-specific behavior, with automated tests where logic is separable: command parsing (pure string → command mapping), scenario win/lose detection (headless via `SimulationTestHarness`), and policy signal wiring. Created `docs/technical/UI-TESTING-ROADMAP.md` documenting the infrastructure needed for full automated UI testing as a future side project (headless Godot runtime, GdUnit4 framework, scene tree mocking, CI integration).
+
 ---
 
 ### L4. IAgentRegistry Interface Not Defined
