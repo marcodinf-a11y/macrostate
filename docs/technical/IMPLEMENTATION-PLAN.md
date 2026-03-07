@@ -362,7 +362,7 @@ Phase 15: Balancing & Polish
 
 **REFACTOR:** Simplify auction mechanics. Extract bond accounting patterns.
 
-**Dependencies:** Phase 3, Phase 5 (banks need to exist)
+**Dependencies:** Phase 3 (banks need to exist with reserve accounts)
 
 **Definition of done:** All tests pass. Bond auctions run, interest is paid, CB backstops. All SFC-consistent. All parameters from data.
 

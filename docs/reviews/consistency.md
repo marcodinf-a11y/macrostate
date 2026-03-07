@@ -553,7 +553,7 @@ Updated NFR-DTA-001 in the PRD to specify log-and-ask behavior. Updated Architec
 
 ---
 
-### L9. Phase 6 Dependency on Phase 5 Overstated
+### ~~L9. Phase 6 Dependency on Phase 5 Overstated~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -562,6 +562,8 @@ Updated NFR-DTA-001 in the PRD to specify log-and-ask behavior. Updated Architec
 Phase 6 lists dependencies as "Phase 3, Phase 5 (banks need to exist)." But banks exist after Phase 3 (which creates all agent types). Phase 5 adds lending behavior, which is not required for bond purchasing. The stated rationale "banks need to exist" is satisfied by Phase 3 alone. Phase 6 may not actually depend on Phase 5 unless the bond auction requires lending infrastructure.
 
 This means Phases 5 and 6 could potentially be parallelized or reordered.
+
+**Resolution:** Confirmed that Phase 6 (bond auctions) does not depend on Phase 5 (lending). Bond purchases are reserve-circuit operations (banks exchange reserves for bonds), while lending is a deposit-circuit operation (banks create deposits when issuing loans). These are independent mechanisms. Phase 6 only needs banks to exist as agents with reserve accounts, which Phase 3 provides. Updated Phase 6 dependencies from "Phase 3, Phase 5" to "Phase 3" only. Phases 5 and 6 can now be worked in parallel after Phase 3 completes.
 
 ---
 
