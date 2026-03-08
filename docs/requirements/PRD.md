@@ -69,13 +69,14 @@ Macrostate is an open source, single-player economic simulation game built on Mo
 - Must collect taxes (destroying deposits and reserves)
 - Must issue bonds via auction
 - Must track cumulative deficit/surplus
-- Spending must be allocatable to: infrastructure, public services, direct transfers
-- Must employ workers directly (public sector employment) competing in the labor market alongside firms
-- Must procure goods and services from private sectors based on spending allocation (infrastructure -> construction/manufacturing demand, public services -> services/manufacturing demand)
+- Spending must be allocated across data-driven functional divisions (e.g., public services, infrastructure, social transfers, defense) per ADR-0018
+- Each functional division must decompose into engine-level economic flow types: compensation of employees, intermediate consumption (procurement), social benefits (transfers), and gross capital formation — with per-division ratios and sector targeting defined in data files
+- The simulation engine must process only economic flow types, not functional categories — the decomposition is performed by the presentation layer
+- Must employ workers directly (public sector employment) competing in the labor market alongside firms, with employment volume determined by the compensation share of each functional division
+- Must procure goods and services from private sectors, with procurement demand determined by the intermediate consumption and capital formation shares of each functional division and their sector targeting
 - Must track public sector employment separately from private employment
 - Government wage rates must be set by a data-driven pay scale that adjusts more slowly than private sector wages (civil service stickiness)
-- Government procurement must create demand in private sectors: infrastructure spending generates construction and manufacturing demand; public services spending generates services and manufacturing demand
-- Direct transfers must create no direct resource demand — money flows to households who spend via AIDS demand system
+- Transfers must create no direct resource demand — money flows to households who spend via AIDS demand system
 - Government spending must never be rejected or constrained based on Treasury account balance (the real constraint is inflation, not money)
 - Government must always pay bond interest and principal when due — sovereign default on domestic-currency debt must not be modeled
 
@@ -270,8 +271,8 @@ Where a lag is specified as a range (e.g., 1-2 ticks), the actual value for each
 
 #### FR-CTL-001: Policy Levers
 - Player must be able to set total government spending level
-- Player must be able to allocate spending across: infrastructure, public services, direct transfers
-- Spending allocation determines both public sector employment costs (wages for government workers) and procurement demand placed on private sectors. The total spending level is the budget; the allocation determines how it divides between government payroll and sector procurement within each category.
+- Player must be able to allocate spending across functional divisions (e.g., public services, infrastructure, social transfers, defense) per ADR-0018
+- Each functional division automatically decomposes into economic flow types (compensation, procurement, transfers, capital formation) using data-driven ratios. The player controls functional allocation; the engine receives the resulting flow-type amounts and sector targeting.
 - Player must be able to set a single income tax rate
 - All controls must be adjustable at any time (including while paused)
 

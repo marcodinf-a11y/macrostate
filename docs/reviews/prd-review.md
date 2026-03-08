@@ -151,7 +151,7 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 
 | ID | Requirements | Issue |
 |---|---|---|
-| A15 | FR-CTL-001 vs FR-AGT-001 | Player controls 3 spending buckets but public employment costs relationship unspecified |
+| ~~A15~~ | ~~FR-CTL-001 vs FR-AGT-001~~ | ~~Player controls 3 spending buckets but public employment costs relationship unspecified~~ — ✅ Resolved by ADR-0018: two-layer spending architecture with explicit compensation shares per functional division |
 | A16 | FR-SIM-001 | "Government + Private = 0" but CB balance sheet treatment unclear |
 | A17 | FR-BNK-003 | Mortgages "secured by housing" but no housing asset/sector exists |
 
@@ -181,7 +181,8 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 ### Medium (important for implementation clarity)
 - ~~G5-G7: Policy replacement, deterministic simulation, input log~~ ✅
 - ~~G8-G12: Rationing, AIDS validation, disposable income, gov wages, procurement mapping~~ ✅
-- A15-A17: Internal contradictions
+- ~~A15: Spending buckets vs employment costs~~ ✅ (ADR-0018)
+- A16-A17: Internal contradictions
 - C4-C6: ECONOMIC-MODEL.md cross-doc fixes
 
 ### Lower (design detail to resolve during implementation)

@@ -139,29 +139,34 @@ The currency-issuing sovereign. The player controls this sector.
 > **Note:** Government spending and bank lending are both sources of endogenous money creation. Government creates currency (reserves + deposits) by crediting bank reserve accounts; banks create currency (deposits only) by issuing loans. See [Bank Credit Creation](#bank-credit-creation-endogenous-money) for the private-sector channel.
 
 **Actions:**
-- Spend money (creates currency) allocated to: infrastructure, public services, direct transfers
+- Spend money (creates currency) allocated across functional divisions per ADR-0018
 - Collect taxes (destroys currency)
 - Issue bonds (auction-based, see below)
 - Set tax rate
-- Set spending level and allocation
+- Set spending level and functional allocation
+
+**Two-layer spending architecture (ADR-0018):**
+
+Government spending uses a two-layer architecture that separates economic mechanics from policy presentation:
+
+**Layer 1 — Engine (economic flow types).** The simulation engine processes only SFC/SNA flow types:
+- **Compensation of employees (W_g):** Wages and benefits to public sector workers. Absorbs labor, creates household income directly.
+- **Intermediate consumption (G_ic):** Purchases of goods and services from private sector firms. Creates sectoral demand and firm revenue.
+- **Social benefits / transfers (TR):** Cash payments to households. Creates household income with no direct resource claim — recipients spend via the AIDS demand system.
+- **Gross capital formation (G_cf):** Government investment in fixed assets. Creates sectoral demand and accumulates as public capital stock. (MVP: merged with intermediate consumption.)
+- **Interest payments (r·B):** Interest on outstanding bonds. Automatic, flows to bondholders.
+
+**Layer 2 — Presentation (functional divisions).** The player allocates spending across functional divisions (e.g., public services, infrastructure, social transfers, defense). Each division is a data-driven recipe specifying its decomposition into engine flow types and sector targeting. For example, education is ~80% compensation / ~10% procurement / ~10% capital, while social protection is ~93% transfers. See ADR-0018 for full rationale and example definitions.
 
 **Government as employer and procurer:**
 
-The government participates in the real economy through two channels:
+The government participates in the real economy through two channels, both driven by the functional division decomposition:
 
-1. **Direct employment** — The government hires workers from the labor pool, competing with private firms. Public teachers, healthcare workers, engineers, administrators, and planners are government employees. Government wage rates are set by a data-driven pay scale that adjusts more slowly than private sector wages (civil service stickiness). Public sector employment is tracked separately from private employment.
+1. **Direct employment** — The compensation share of each functional division determines how many workers the government hires from the labor pool, competing with private firms. Government wage rates are set by a data-driven pay scale that adjusts more slowly than private sector wages (civil service stickiness). Public sector employment is tracked separately from private employment.
 
-2. **Procurement** — The government purchases goods and services from private sectors. Infrastructure spending creates demand for construction output and manufacturing materials. Public services may procure equipment and outsource certain functions.
+2. **Procurement** — The intermediate consumption and capital formation shares of each functional division generate demand in private sectors, with sector targeting specified per division.
 
-**Spending allocation maps to real resources as follows:**
-
-| Spending category | Public employment | Sector procurement | Direct resource competition |
-|---|---|---|---|
-| **Infrastructure** | Engineers, planners, project managers | Construction output, manufacturing materials | Yes — competes for construction workers and sector capacity |
-| **Public services** | Teachers, doctors, administrators | Equipment (manufacturing), outsourced services | Yes — competes for skilled service and manufacturing workers |
-| **Direct transfers** | None | None | No — money flows to households who spend via AIDS demand system |
-
-This distinction is central to the MMT argument. Transfers increase household income and create demand distributed across sectors via the AIDS consumption model. Infrastructure and public services directly absorb real resources — labor and sector output. The same dollar amount produces very different economic effects depending on its composition.
+This distinction is central to the MMT argument. Transfers increase household income and create demand distributed across sectors via the AIDS consumption model. Compensation and procurement directly absorb real resources — labor and sector output. The same dollar amount produces very different economic effects depending on the functional division's composition — education (employment-heavy) has a very different multiplier profile from social protection (transfer-heavy) or defense (procurement-heavy).
 
 The government's wage offers create a de facto wage floor. If the government pays 3,000/month for public service workers, private firms offering significantly less will lose workers. This demonstrates how fiscal policy sets an implicit minimum wage — a key MMT/post-Keynesian insight and the precursor to the Job Guarantee's role as a wage anchor.
 
