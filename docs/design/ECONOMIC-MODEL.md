@@ -216,7 +216,7 @@ Banking is modeled as a credit-creation and payments sector, not as a production
 - Supply labor to firms and government (see Labor Market)
 - Consume according to the AIDS demand system — budget shares across sectors determined by income and prices (see Consumption Model)
 - Save surplus income
-- Borrow from banks when needed/eligible
+- Borrow from banks for asset/durable goods purchases (see [Household Borrowing](#household-borrowing))
 - Pay taxes on income
 
 ### Firms (4 Sectors)
@@ -537,6 +537,57 @@ When a loan is repaid:
 - Bank writes off the loan (loss)
 - If bank losses exceed equity, bank becomes insolvent (systemic risk)
 
+### Household Borrowing
+
+Household borrowing is modeled as **amortizing installment loans for asset and durable goods purchases** (mortgage-style). This reflects empirical US household debt composition where ~79% of outstanding debt is mortgage + auto loans (NY Fed Household Debt and Credit Report, Q4 2024).
+
+#### Borrowing Decision
+Households seek loans when they wish to purchase durable goods (from the Construction and Manufacturing sectors) whose cost exceeds their current savings. The borrowing motive is asset acquisition, not consumption smoothing — current consumption is funded from income via the AIDS demand system.
+
+#### Bank Evaluation
+The bank evaluates household loan applications using a **debt-to-income (DTI) ratio** threshold:
+
+```
+Approved if: (existing debt service + new payment) / gross income < DTI_threshold
+
+Where:
+  DTI_threshold ≈ 0.40 (40%, consistent with US conventional lending standards)
+  DTI_threshold is loaded from bank parameters (data file) and is moddable
+```
+
+This is consistent with the endogenous money framework: banks are not reserve-constrained but **are** creditworthiness-constrained. The bank will lend to any household that passes the DTI check, creating new deposits in the process (see [Credit Creation Mechanics](#credit-creation-mechanics)).
+
+#### Loan Structure
+Household loans use **fixed amortizing installments**:
+
+```
+Each period, the household pays a fixed amount:
+  Payment = Principal × [r(1+r)^n] / [(1+r)^n - 1]
+
+Where:
+  r = lending rate per period (CB policy rate + bank spread + risk premium)
+  n = loan term in ticks (loaded from bank parameters, moddable)
+
+Each payment splits into:
+  Interest portion = outstanding balance × r  (bank revenue, not destroyed)
+  Principal portion = payment - interest       (money destruction)
+```
+
+#### Default
+A household defaults when it has **zero income AND zero savings (deposits)** for N consecutive ticks (N loaded from bank parameters, moddable). On default:
+
+1. The bank removes the loan from its asset book (write-off)
+2. The loss is absorbed first by the bank's **loan loss reserve** (allowance), then by bank equity if the reserve is exhausted
+3. The deposits originally created by the loan **remain in circulation** — default is an equity event for the bank, not a money supply event for the economy
+4. The bank's capital ratio worsens, potentially constraining future lending
+
+This correctly reflects the MMT/endogenous money view: when a loan is created, new deposits enter the economy via the borrower's spending. If the borrower later defaults, those deposits are already held by other agents (sellers of the goods purchased). The money doesn't vanish — only the bank's asset (the loan receivable) is destroyed, shrinking the bank's balance sheet and equity.
+
+#### Uniform Across Household Classes
+Borrowing rules are uniform across all household classes. The DTI threshold, loan terms, and default triggers do not vary by class. Differences in borrowing outcomes emerge naturally from differences in income levels and existing debt loads.
+
+_Post-MVP: Household borrowing is fully specified here but deferred to post-MVP implementation. The MVP banking system handles firm lending only. See [MVP-SCOPE.md](../requirements/MVP-SCOPE.md)._
+
 ## Government Bonds: Auction-Based
 
 The government issues bonds following real-world institutional practice. Bond issuance is a reserve management operation, not a means of "financing" the deficit (see MMT Context below).
@@ -556,7 +607,7 @@ The game models the real-world procedure (auctions) while allowing players to ob
 ### Bond Properties
 - **Face value:** fixed denomination
 - **Coupon rate:** determined at auction (interest paid to holder)
-- **Maturity:** time until the government repays the face value
+- **Maturity:** time until the government repays the face value. MVP uses a single fixed maturity (12 months). The full game introduces multiple maturities (e.g., 3-month, 1-year, 5-year, 10-year) with an emergent yield curve reflecting term premia and fiscal expectations.
 - **Secondary market:** bond holders can sell bonds to other agents
 
 ### Interest Payments

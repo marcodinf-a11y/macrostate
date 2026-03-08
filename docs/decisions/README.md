@@ -24,3 +24,6 @@ Each ADR follows: Title, Status, Context, Decision, Consequences.
 | [ADR-0012](ADR-0012-geometric-depreciation.md) | Geometric depreciation for capital stock | Accepted |
 | [ADR-0013](ADR-0013-godley-lavoie-wage-equation.md) | Godley & Lavoie wage equation | Accepted |
 | [ADR-0014](ADR-0014-inter-sector-labor-mobility.md) | Inter-sector labor mobility with on-the-job search | Accepted |
+| [ADR-0015](ADR-0015-adaptive-demand-estimation.md) | Adaptive demand estimation for firm production planning | Accepted |
+| [ADR-0016](ADR-0016-accelerator-investment-function.md) | Accelerator investment function for private firms | Accepted |
+| [ADR-0017](ADR-0017-uniform-price-bond-auction.md) | Uniform price bond auction | Accepted |

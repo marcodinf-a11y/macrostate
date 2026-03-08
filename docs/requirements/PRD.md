@@ -205,6 +205,14 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 - If a borrower cannot pay, they must default
 - Defaults must result in a bank loss (write-off)
 
+#### FR-BNK-005: Household Borrowing Decision _(post-MVP)_
+- Households must be able to borrow via amortizing installment loans for asset/durable goods purchases
+- Bank must evaluate household loan applications using a DTI ratio threshold (default ~40%, moddable)
+- Approved loans must use fixed amortizing installments with term and rate loaded from bank parameters
+- Households must default when they have zero income AND zero savings for N consecutive ticks (N moddable)
+- On default: loan written off from bank's balance sheet, loss absorbed by loan loss reserve then equity, deposits already created remain in circulation
+- Borrowing rules must be uniform across household classes
+
 ### 2.6 Government Bonds
 
 #### FR-BND-001: Auction-Based Issuance
@@ -215,7 +223,7 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 - Central bank must act as buyer of last resort (can buy unsold bonds)
 
 #### FR-BND-002: Bond Properties
-- Bonds must have: face value, coupon rate (set at auction), maturity
+- Bonds must have: face value, coupon rate (set at auction), maturity (MVP: single fixed 12-month maturity; full vision: multiple maturities with yield curve)
 - Government must pay interest on outstanding bonds each period
 - Interest payments must create new currency (government spending)
 

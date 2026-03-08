@@ -113,7 +113,7 @@ Each finding has a unique ID (FDR-NNN), severity, affected locations, descriptio
 - **Description:** Labor mobility parameters defined in ADR-0014 have no designated JSON data file.
 - **Suggestion:** Add mobility parameters to sectors.json and document in PARAMETERS-COMMENTARY.md.
 
-#### FDR-011: No FR for household borrowing behavior
+#### FDR-011: No FR for household borrowing behavior [FIXED]
 - **Severity:** Major
 - **Locations:** PRD (missing FR), ECONOMIC-MODEL.md
 - **Agents:** Agent 3 (G-004)
@@ -458,7 +458,7 @@ These are important for implementation correctness but don't block initial archi
 |----|-------|--------|
 | FDR-009 | Assign Omega coefficients to a data file | Low |
 | FDR-010 | Assign mobility parameters to a data file | Low |
-| FDR-011 | Decide on household borrowing scope | Medium |
+| ~~FDR-011~~ | ~~Decide on household borrowing scope~~ | ~~Medium~~ |
 | FDR-016 | Add wage/procurement split defaults | Low |
 | FDR-017 | Add CapacityThreshold default value | Low |
 | FDR-020 | Add sovereign invariant tests | Low |

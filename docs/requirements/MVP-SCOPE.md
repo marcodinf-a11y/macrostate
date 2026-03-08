@@ -33,6 +33,7 @@ The MVP implements the full economic model with these simplifications:
 | Foreign sector | None (closed economy) | Multiple AI nations with trade | [ECONOMIC-MODEL.md § SFC](../design/ECONOMIC-MODEL.md#foundational-framework-stock-flow-consistency-sfc) |
 | Bank competition | Single aggregate bank | Multiple competing banks | [ARCHITECTURE.md § Agent Interfaces](../technical/ARCHITECTURE.md#33-agent-interfaces) |
 | Bond secondary market | No resale | Full secondary market | [ECONOMIC-MODEL.md § Bonds](../design/ECONOMIC-MODEL.md#government-bonds-auction-based) |
+| Bond maturity | Single fixed maturity (12 months) | Multiple maturities with yield curve | [ECONOMIC-MODEL.md § Bonds](../design/ECONOMIC-MODEL.md#government-bonds-auction-based) |
 | Central bank policy rate | Fixed at 0 | Player-adjustable or rule-based | [ECONOMIC-MODEL.md § Central Bank](../design/ECONOMIC-MODEL.md#central-bank) |
 | Provinces | Single province | Multiple geographic provinces | [GAME-DESIGN.md](../design/GAME-DESIGN.md) Map |
 | Firm heterogeneity | One representative firm per sector | Multiple competing firms per sector | [ECONOMIC-MODEL.md § Firms](../design/ECONOMIC-MODEL.md#firms-4-sectors) |
@@ -56,7 +57,9 @@ The following are explicitly deferred beyond the MVP:
 | Monetary policy (CB rate changes) | CB rate fixed at 0 initially |
 | Multiple tax types | Single income tax; progressive/sales/wealth taxes later |
 | Bond secondary market | No resale initially |
+| Bond maturity structure | Single fixed maturity (12 months); multiple maturities with yield curve later |
 | Multiple competing banks | Single aggregate bank initially |
+| Household borrowing (FR-BNK-005) | Fully specified; MVP banking handles firm lending only |
 | Bank insolvency / systemic crisis mechanics | Defaults tracked but no systemic crisis modeling |
 | Collective bargaining / wage contracts | Simple wage posting only |
 | 5+ household classes or continuous income spectrum | 3 classes initially; continuous spectrum later |
