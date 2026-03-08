@@ -24,7 +24,7 @@ Four-axis review of the PRD covering correctness, staleness, completeness, and a
 - **PRD:** FR-PRC-001 (line 121): "Markup must adjust based on demand relative to capacity"
 - **Conflict:** ADR-0010 specifies asymmetric speeds (upward fast 0.5, downward slow 0.1) with per-sector parameters `markupUpwardSpeed` and `markupDownwardSpeed`.
 
-### C4: ECONOMIC-MODEL describes CB acting in secondary market — ✅ Partially resolved
+### C4: ECONOMIC-MODEL describes CB acting in secondary market — ✅ Resolved
 - **PRD:** Section 5 (line 468) excludes secondary market from MVP. FR-BND-001 describes CB as auction backstop only.
 - **Conflict:** ECONOMIC-MODEL SS172 says CB "Buy/sell government bonds on secondary market." The PRD is correct; ECONOMIC-MODEL needs fixing.
 - **Resolution:** After MVP extraction, ECONOMIC-MODEL describes the full vision. CB secondary market operations (open market operations) are correct for full vision. Fixed: clarified as "open market operations" and separated "buyer of last resort at primary auctions" into its own bullet.
@@ -127,25 +127,25 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 
 | ID | Requirement | Issue |
 |---|---|---|
-| A1 | FR-TIM-001, FR-TIM-002 | Lag ranges (1-2, 2-3, 6-12 ticks) with no rule for picking a value |
-| A2 | FR-INV-001/002 | Depreciation "over time" -- no rate, method, or formula |
-| A3 | FR-PRC-001 | Markup adjustment "based on demand relative to capacity" -- no functional form |
-| A4 | FR-PRC-002 | "Buffers exhausted" -- no thresholds defined |
-| A5 | FR-LBR-001 | "Sticky downward" -- no asymmetry factor or max per-tick decline |
-| A6 | FR-LBR-002 | Sector mobility "over time" -- no friction cost or transition delay |
+| ~~A1~~ | ~~FR-TIM-001, FR-TIM-002~~ | ~~Lag ranges (1-2, 2-3, 6-12 ticks) with no rule for picking a value~~ — ✅ Resolved: FR-TIM-001 policy pipeline lags (spending change 1-2, reallocation 2-3) added to PARAMETERS-COMMENTARY. FR-TIM-002 clarified: investment→capacity is a discrete pipeline delay (already parameterized); wage/price/hiring lags are emergent from continuous adjustment mechanisms (ADR-0010, ADR-0013, ADR-0015), not separate delay parameters. |
+| ~~A2~~ | ~~FR-INV-001/002~~ | ~~Depreciation "over time" -- no rate, method, or formula~~ — ✅ Resolved: geometric depreciation formula in PRD + ADR-0012 + per-sector/category rates in data files |
+| ~~A3~~ | ~~FR-PRC-001~~ | ~~Markup adjustment "based on demand relative to capacity" -- no functional form~~ — ✅ Resolved: full formula with asymmetric speeds in PRD + ADR-0010/0011 |
+| ~~A4~~ | ~~FR-PRC-002~~ | ~~"Buffers exhausted" -- no thresholds defined~~ — ✅ Resolved by design: buffers operate as continuous mechanisms (productivity, slack, margins), not discrete thresholds |
+| ~~A5~~ | ~~FR-LBR-001~~ | ~~"Sticky downward" -- no asymmetry factor or max per-tick decline~~ — ✅ Resolved: Godley-Lavoie wage equation (ADR-0013) with Omega coefficients; downward rigidity emerges from calibration |
+| ~~A6~~ | ~~FR-LBR-002~~ | ~~Sector mobility "over time" -- no friction cost or transition delay~~ — ✅ Resolved: ADR-0014 specifies mobility matrix, on-the-job search probability, and transition productivity penalty |
 
 ### Under-specified Mechanics
 
 | ID | Requirement | Issue |
 |---|---|---|
 | ~~A7~~ | ~~FR-AGT-003 / Section 5~~ | ~~Plural "Commercial Banks" but MVP is single aggregate bank~~ — ✅ Not a PRD issue; PRD describes full vision, MVP-SCOPE handles simplification |
-| A8 | FR-BND-001 | Auction type unspecified (uniform price? discriminatory?) |
-| A9 | FR-BND-002 | Bond maturity length unspecified |
-| A10 | FR-BNK-002 | No DTI thresholds, collateral haircuts, or approval criteria |
-| A11 | FR-BNK-003 | Loan durations and amortization unspecified |
-| A12 | FR-PRC-003 | Price level weighting method unspecified |
-| A13 | FR-AGT-004 | No population counts, class ratios, or reclassification rules |
-| A14 | FR-SIM-003 | Tick phase names listed but operations per phase undefined |
+| ~~A8~~ | ~~FR-BND-001~~ | ~~Auction type unspecified (uniform price? discriminatory?)~~ — ✅ Resolved: ADR-0017 specifies uniform price (Dutch) auction |
+| ~~A9~~ | ~~FR-BND-002~~ | ~~Bond maturity length unspecified~~ — ✅ Resolved: PRD FR-BND-002 specifies 12-month fixed maturity for MVP; multiple maturities with yield curve for full vision |
+| ~~A10~~ | ~~FR-BNK-002~~ | ~~No DTI thresholds, collateral haircuts, or approval criteria~~ — ✅ Resolved: ECONOMIC-MODEL specifies DSCR ≥ 1.25 for firms, DTI < 0.40 for households, LTV ≤ 0.80 for mortgages; collateral-based default with repossession; all in PARAMETERS-COMMENTARY |
+| ~~A11~~ | ~~FR-BNK-003~~ | ~~Loan durations and amortization unspecified~~ — ✅ Resolved: ECONOMIC-MODEL specifies fixed amortizing installments; business loans tied to depreciation rate (max 120 ticks), consumer loans 60 ticks, mortgages 360 ticks; standard payment formula provided |
+| ~~A12~~ | ~~FR-PRC-003~~ | ~~Price level weighting method unspecified~~ — ✅ Resolved: ECONOMIC-MODEL specifies Stone price index (ln(P) = Σ w_ci × ln(p_i)), weighted by household expenditure shares per class |
+| ~~A13~~ | ~~FR-AGT-004~~ | ~~No population counts, class ratios, or reclassification rules~~ — ✅ Resolved by ADR-0019: engine tracks income by source (wages, dividends, interest, transfers); income classes (30/51/19% from Pew 2024) are a behavioral parameterization determining AIDS/consumption parameters; functional composition (wage share, profit share) is an analytical indicator; class membership fixed for MVP |
+| ~~A14~~ | ~~FR-SIM-003~~ | ~~Tick phase names listed but operations per phase undefined~~ — ✅ Resolved: ECONOMIC-MODEL § Simulation Tick Sequence provides detailed per-phase operations across all 5 phases |
 
 ### Internal Contradictions
 
@@ -184,9 +184,9 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 - ~~A15: Spending buckets vs employment costs~~ ✅ (ADR-0018)
 - ~~A16: CB balance sheet treatment in sectoral identity~~ ✅
 - ~~A17: Internal contradiction (mortgages)~~ ✅
-- C4-C6: ECONOMIC-MODEL.md cross-doc fixes
+- ~~C4-C6: ECONOMIC-MODEL.md cross-doc fixes~~ ✅
 
 ### Lower (design detail to resolve during implementation)
-- A1-A6: Vague thresholds -- acceptable if data files will specify values
-- A7-A14: Under-specified mechanics -- may be intentionally deferred
+- ~~A1-A6: Vague thresholds~~ — ✅ All resolved: A1 policy lags parameterized + economic lags clarified as emergent; A2-A6 resolved by ADRs 0010-0014
+- ~~A7-A14: Under-specified mechanics~~ — ✅ All resolved: A7-A12, A14 by prior work; A13 by ADR-0019 (income classification architecture)
 - A18-A23: Edge cases -- important but can be resolved incrementally

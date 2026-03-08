@@ -115,8 +115,20 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 - Must track: reserves, loans outstanding, deposits, bonds held, equity
 
 #### FR-AGT-004: Households
-- Must exist in multiple income classes (low income, middle income, high income, and potentially more)
+
+**Income tracking (ADR-0019):**
+- Each household must track income by source: wages, dividends, interest, transfers
+- Gross income = wages + dividends + interest + transfers
+- Disposable income (YD) = gross income - taxes - debt service
+- Tax policy may apply different rates to wage income vs capital income (dividends + interest)
+
+**Income classes (ADR-0019):**
+- Must exist in multiple income classes (MVP: 3 — low income, middle income, high income)
+- Class population shares must be loaded from scenario data files (`households.json`); for US MVP scenario, calibrated from Pew Research (2024): 30% low / 51% middle / 19% high
+- Class membership is fixed for MVP (no reclassification during simulation)
 - Each class must have different: consumption patterns, saving rates, reservation wages, debt capacity
+
+**Consumption:**
 - Must consume according to the AIDS (Almost Ideal Demand System) — budget shares across sectors determined by income level and sector prices
 - Each class must have distinct AIDS parameters (alpha, beta, gamma) reflecting empirically different consumption patterns
 - Price elasticity and income elasticity must emerge from the AIDS parameters, not be hardcoded separately
@@ -125,6 +137,12 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 - Per-class consumption propensities (alpha1, alpha_f, alpha_h) must be loaded from data files
 - AIDS must allocate M_c (from the consumption function) across sectors — AIDS determines _what_ to spend on, the consumption function determines _how much_
 - AIDS parameters must be validated on load: adding-up (`SUM(alpha)=1`, `SUM(gamma)=0`, `SUM(beta)=0`), homogeneity (`SUM_j(gamma_ij)=0`), and symmetry (`gamma_ij=gamma_ji`) constraints must hold
+
+**Analytical indicators (ADR-0019):**
+- Engine must compute per-household capital income share: `(dividends + interest) / gross income`
+- Aggregate wage share and profit share must be available as macro indicators for the player
+
+**Balance sheet and behavior:**
 - Must track housing stock as a real asset on the household balance sheet, valued at current market price
 - Must track net wealth as: deposits + housing value - consumer loans - mortgage debt
 - Must supply labor to firms and government
@@ -295,11 +313,17 @@ Where a lag is specified as a range (e.g., 1-2 ticks), the actual value for each
 - If a policy parameter is changed while a previous change for the same parameter is still pending, the new value replaces the pending value and the lag timer resets (ADR-0002)
 
 #### FR-TIM-002: Economic Lags
-- Wage adjustments: 1-3 ticks
-- Price adjustments: 1-2 ticks
-- Hiring/firing: 1-2 ticks
-- Investment to capacity: 3-6 ticks
-- Household spending adjustment: 1 tick
+
+Economic lags fall into two categories: **discrete pipeline delays** (real gestation periods where an action is in progress) and **emergent adjustment speeds** (the observed pace of change produced by continuous adjustment equations each tick).
+
+Discrete pipeline delays (parameterized in data files):
+- Investment to capacity: 3-6 ticks (capital gestation period — build/install time)
+
+Emergent adjustment speeds (no separate delay parameters — timing emerges from the underlying mechanisms):
+- Wage adjustments (~1-3 ticks effective response): governed by Godley-Lavoie wage equation Omega coefficients (ADR-0013)
+- Price adjustments (~1-2 ticks effective response): governed by markup adjustment speeds `markupUpwardSpeed`/`markupDownwardSpeed` (ADR-0010)
+- Hiring/firing (~1-2 ticks effective response): governed by adaptive demand estimation smoothing (ADR-0015) and inventory buffers absorbing demand shocks before workforce changes
+- Household spending adjustment: 1 tick (AIDS consumption function evaluates every tick)
 
 #### FR-TIM-003: Visual Pipeline
 - Pending policy changes must be visible in the UI with estimated time to effect

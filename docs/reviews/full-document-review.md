@@ -549,8 +549,8 @@ Complete status of all A-series items from prd-review.md:
 | A9 | Bond maturity structure | Resolved | MVP-SCOPE.md, ECONOMIC-MODEL.md, PRD | Single fixed 12-month maturity (MVP); multiple maturities with yield curve (full game) |
 | A10 | Creditworthiness DTI thresholds | Resolved | ECONOMIC-MODEL.md, PRD FR-BNK-002, PARAMETERS-COMMENTARY.md | Firms: DSCR ≥ 1.25; Households: DTI ≤ 0.40 |
 | A11 | Loan durations / amortization | Resolved | ECONOMIC-MODEL.md, PARAMETERS-COMMENTARY.md | Households: 60-tick fixed amortizing; Firms: `min(1/depRate, 120)` ticks; Mortgages: 360-tick (full game, draft) |
-| A12 | Price level weighting method | **Open** | -- | Needs ADR or documented default |
-| A13 | Population counts / reclassification | **Open** | -- | Needs ADR or documented default |
+| A12 | Price level weighting method | Resolved | ECONOMIC-MODEL.md § AIDS | Stone price index: ln(P) = Σ w_ci × ln(p_i), weighted by household expenditure shares |
+| A13 | Population counts / reclassification | Resolved | ADR-0019 | Engine tracks income by source; 3 fixed classes (30/51/19% Pew); functional composition as analytical indicator |
 | A14 | (not referenced) | Resolved | -- | -- |
 | A15 | Wage/procurement spending split | Partially resolved | FR-CTL-001 | Lever exists but no default values (FDR-016) |
 | A16 | CB balance sheet in SFC | Resolved | PRD FR-SIM-001 | prd-review.md not updated |

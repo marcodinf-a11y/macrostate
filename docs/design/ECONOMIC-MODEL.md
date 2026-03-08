@@ -253,20 +253,51 @@ Banking is modeled as a credit-creation and payments sector, not as a production
 
 ### Households
 
-| Class | Characteristics |
-|---|---|
-| **Low income** | High propensity to consume. Budget share heavily weighted toward agriculture and basic manufacturing. Minimal savings. May take on debt for necessities. |
-| **Middle income** | Moderate consumption and saving. More balanced budget shares across sectors. Take on mortgage debt for housing. Some discretionary spending on services. |
-| **High income** | Low propensity to consume (relative to income). Budget share shifts toward services and discretionary manufacturing. Significant savings. Housing wealth accumulation via owned housing stock. |
+#### Income Architecture (ADR-0019)
 
-**Balance sheet tracks:**
+The engine tracks every household's income by source, following standard SFC accounting:
+
+- **Wage income** — from employment (firm or government)
+- **Dividend income** — from equity holdings in firms/bank
+- **Interest income** — on bank deposits
+- **Transfer income** — government transfers (unemployment benefits, etc.)
+
+```
+Gross income = wages + dividends + interest + transfers
+Disposable income (YD) = gross income - taxes - debt service
+```
+
+This granular tracking enables differential taxation of wage vs capital income (a real-world policy lever) and provides the data for macro indicators (wage share, profit share).
+
+#### Income Classes
+
+Households are assigned to income classes that determine their behavioral parameters (AIDS, consumption propensities, reservation wages). Class population shares are loaded from scenario data files.
+
+| Class | Population share (US MVP) | Characteristics |
+|---|---|---|
+| **Low income** | 30% (Pew 2024) | High propensity to consume. Budget share heavily weighted toward agriculture and basic manufacturing. Minimal savings. May take on debt for necessities. |
+| **Middle income** | 51% (Pew 2024) | Moderate consumption and saving. More balanced budget shares across sectors. Take on mortgage debt for housing. Some discretionary spending on services. |
+| **High income** | 19% (Pew 2024) | Low propensity to consume (relative to income). Budget share shifts toward services and discretionary manufacturing. Significant savings. Housing wealth accumulation via owned housing stock. |
+
+Class membership is **fixed for MVP**. This is consistent with every SFC and ABM model surveyed (Godley & Lavoie, Dos Santos-Zezza, EURACE, K+S, JAMEL) — none implement income-threshold reclassification. Post-MVP, dynamic reclassification based on rolling average income with hysteresis is planned (see ADR-0019).
+
+#### Functional Composition (Analytical)
+
+The engine computes a **capital income share** per household each tick: `(dividends + interest) / gross income`. This is not a behavioral classification — it does not affect household parameters. It provides:
+
+- **Aggregate wage share**: Central Kaleckian/MMT indicator. Rising profit share shifts income toward higher-saving households, reducing aggregate demand.
+- **Tax policy foundation**: Enables differential taxation of wage vs capital income.
+
+#### Balance Sheet
+
 - Deposit account at bank (asset)
 - Housing stock (real asset — valued at current market price, see [Housing Market](#housing-market))
 - Consumer loans (liabilities)
 - Mortgages (liabilities — secured by housing stock)
 - Net wealth = deposits + housing value - consumer loans - mortgage debt
 
-**Behavior:**
+#### Behavior
+
 - Supply labor to firms and government (see Labor Market)
 - Consume according to the two-stage budgeting model: the consumption function determines total expenditure from income and wealth, then AIDS allocates it across sectors (see [Consumption Function](#consumption-function) and [Consumption Model](#consumption-model-almost-ideal-demand-system-aids))
 - Save surplus income (savings = disposable income - consumption expenditure)
@@ -580,8 +611,8 @@ Firms and the government post job openings with an offered wage. Households deci
 - Government job postings enter the same labor market pool as firm postings
 
 ### Household Side (Accepting)
-- Each household class has a **reservation wage** (minimum acceptable wage)
-- Low income: lower reservation wage (desperate for work)
+- Each income class has a **reservation wage multiplier** (loaded from `households.json`) applied to the economy-wide average wage
+- Low income: lower reservation wage (more willing to accept available work)
 - High income: higher reservation wage (can afford to be selective)
 - Households accept jobs that meet or exceed their reservation wage
 - Preference for higher-paying jobs; workers choose between public and private employment based on offered wage

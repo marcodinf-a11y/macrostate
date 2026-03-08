@@ -213,15 +213,35 @@ Input coefficients are Leontief technical coefficients (fixed proportions), not 
     {
       "id": "low_income",
       "name": "Low Income",
-      "populationShare": 0.40,
+      "populationShare": 0.30,
       "reservationWageMultiplier": 0.7,
       "maxDebtToIncomeRatio": 0.5,
       "savingsTargetMonths": 1,
       "jobSearchProbability": 0.10
+    },
+    {
+      "id": "middle_income",
+      "name": "Middle Income",
+      "populationShare": 0.51,
+      "reservationWageMultiplier": 1.0,
+      "maxDebtToIncomeRatio": 0.4,
+      "savingsTargetMonths": 3,
+      "jobSearchProbability": 0.08
+    },
+    {
+      "id": "high_income",
+      "name": "High Income",
+      "populationShare": 0.19,
+      "reservationWageMultiplier": 1.4,
+      "maxDebtToIncomeRatio": 0.3,
+      "savingsTargetMonths": 6,
+      "jobSearchProbability": 0.05
     }
   ]
 }
 ```
+
+Population shares must sum to 1.0. US MVP values are calibrated from Pew Research Center (2024) 3-class definition. Class membership is fixed for MVP (ADR-0019); reclassification is a post-MVP feature.
 
 Consumption behavior is defined separately in `consumption.json` using the AIDS (Almost Ideal Demand System) model — budget shares across sectors are determined by income and prices, not by a hierarchical needs list. See ECONOMIC-MODEL.md for the AIDS specification.
 

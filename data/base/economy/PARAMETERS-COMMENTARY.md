@@ -33,6 +33,18 @@ For small rates, `annual ≈ monthly × 12` is a reasonable approximation.
 
 > **Note:** Private sector depreciation rates are per-sector properties defined in `sectors.json` (`capitalDepreciationRate` field), not in `parameters.json`. See MODDING.md for the sector data format.
 
+## Household Population Parameters
+
+> **Note:** Per-class behavioral parameters (AIDS coefficients, consumption propensities, reservation wage multipliers, job search probabilities) are defined in `households.json` and `consumption.json`, not in `parameters.json`. See MODDING.md for the data format. The values below are scenario-level parameters that apply to the household sector as a whole.
+
+| Parameter path | Value | Unit | Rationale |
+|---|---|---|---|
+| `household.classes.low_income.populationShare` | 0.30 | ratio | Pew Research Center (2024): 30% of US households are lower-income (below 2/3 of median). |
+| `household.classes.middle_income.populationShare` | 0.51 | ratio | Pew Research Center (2024): 51% of US households are middle-income (2/3 to 2x median). |
+| `household.classes.high_income.populationShare` | 0.19 | ratio | Pew Research Center (2024): 19% of US households are upper-income (above 2x median). |
+
+> **Design note (ADR-0019):** Class membership is fixed for MVP. Income classes are a behavioral parameterization — they determine AIDS parameters and consumption propensities. The engine also tracks income by source (wages, dividends, interest, transfers) for macro indicators (wage share, profit share) and differential tax policy. See ADR-0019 for full architecture.
+
 ## Bank Lending Parameters
 
 | Parameter path | Value | Unit | Rationale |
@@ -45,6 +57,10 @@ For small rates, `annual ≈ monthly × 12` is a reasonable approximation.
 | `bank.firmDefaultGracePeriod` | 3 | ticks (months) | Number of consecutive ticks a firm can miss debt service before default is triggered. |
 | `bank.maxFirmLoanTerm` | 120 | ticks (months) | Maximum firm loan term (10 years). Firm loan terms are derived from capital useful life (`1/depreciationRate`) but capped at this value. Prevents unreasonably long loans in low-depreciation sectors. Matches the upper end of typical US commercial bank term loans (3-10 years). |
 
+| `policy.lags.spendingChange.min` | 1 | ticks (months) | FR-TIM-001 specifies 1-2 ticks. Minimum reflects rapid reallocation of existing budget authority to departments already executing programs. |
+| `policy.lags.spendingChange.max` | 2 | ticks (months) | FR-TIM-001 upper bound. Maximum reflects new spending requiring procurement setup, contract awards, or hiring pipelines. |
+| `policy.lags.spendingReallocation.min` | 2 | ticks (months) | FR-TIM-001 specifies 2-3 ticks. Minimum reflects shifting funds between existing functional divisions with established delivery mechanisms. |
+| `policy.lags.spendingReallocation.max` | 3 | ticks (months) | FR-TIM-001 upper bound. Maximum reflects reallocation requiring new program design, staffing changes, or procurement redirection. |
 | `investment.lags.infrastructureToCapacity.min` | 6 | ticks (months) | FR-TIM-001 specifies 6-12 ticks. Minimum reflects fast-track infrastructure projects (equipment upgrades, minor expansions). |
 | `investment.lags.infrastructureToCapacity.max` | 12 | ticks (months) | FR-TIM-001 specifies 6-12 ticks. Maximum reflects major projects (new facilities, transportation infrastructure). Actual lag for each investment is drawn uniformly from [min, max]. |
 | `investment.lags.servicesToProductivity.min` | 12 | ticks (months) | FR-TIM-001 specifies 12-24 ticks. Education, training, and institutional improvements take longer to translate into measurable productivity gains. |

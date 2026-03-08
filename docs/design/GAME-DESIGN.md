@@ -112,14 +112,14 @@ These constraints create gameplay tension and demonstrate a core MMT insight: se
 
 ### Agent-Based with Populations
 
-The economy is modeled using **household classes** that behave as collective agents. Each class has aggregate behavior emerging from simple rules:
+The economy is modeled using agents with granular income tracking (ADR-0019). Each household tracks income by source (wages, dividends, interest, transfers) and is assigned to an income class that determines behavioral parameters:
 
-- **Households** — earn wages, consume goods, save surplus, pay taxes
+- **Households** — earn wages and capital income, consume goods (AIDS allocation by income class), save surplus, pay taxes
 - **Firms (by sector)** — hire workers, produce goods/services, sell output, pay wages, pay taxes
-- **Banks** — hold deposits, facilitate payments, potentially create credit
+- **Banks** — hold deposits, facilitate payments, create credit (endogenous money)
 - **Government** — spend currency into existence, collect taxes (destroy currency), run programs
 
-In later versions, these groups evolve into individual agents with heterogeneous behavior.
+Income classes (low/middle/high) are fixed for MVP; the engine also computes functional indicators (wage share, profit share) as macro diagnostics for the player.
 
 ### Resource Types
 

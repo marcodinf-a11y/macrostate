@@ -28,7 +28,7 @@ The MVP implements the full economic model with these simplifications:
 
 | Aspect | MVP simplification | Full vision | Reference |
 |---|---|---|---|
-| Household classes | 3 fixed classes | 5+ classes or continuous spectrum | [ECONOMIC-MODEL.md § Households](../design/ECONOMIC-MODEL.md#households) |
+| Household classes | 3 fixed classes (30/51/19% per Pew 2024); no reclassification (ADR-0019) | 5+ classes or continuous spectrum with dynamic reclassification | [ECONOMIC-MODEL.md § Households](../design/ECONOMIC-MODEL.md#households), [ADR-0019](../decisions/ADR-0019-household-income-classification.md) |
 | Sector granularity | 4 top-level sectors | Sub-sector hierarchy (8-15 sectors) via parentId | [ECONOMIC-MODEL.md § Firms](../design/ECONOMIC-MODEL.md#firms-4-sectors) |
 | Foreign sector | None (closed economy) | Multiple AI nations with trade | [ECONOMIC-MODEL.md § SFC](../design/ECONOMIC-MODEL.md#foundational-framework-stock-flow-consistency-sfc) |
 | Bank competition | Single aggregate bank | Multiple competing banks | [ARCHITECTURE.md § Agent Interfaces](../technical/ARCHITECTURE.md#33-agent-interfaces) |
@@ -62,7 +62,7 @@ The following are explicitly deferred beyond the MVP:
 | Household borrowing (FR-BNK-005) | Fully specified; MVP banking handles firm lending only |
 | Bank insolvency / systemic crisis mechanics | Defaults tracked but no systemic crisis modeling |
 | Collective bargaining / wage contracts | Simple wage posting only |
-| 5+ household classes or continuous income spectrum | 3 classes initially; continuous spectrum later |
+| 5+ household classes or continuous income spectrum | 3 fixed classes initially (ADR-0019); dynamic reclassification and finer granularity later |
 | Sub-sector hierarchy | 4 top-level sectors initially; sub-sector expansion later |
 | Mod loader / mod management UI | Data-driven JSON modding sufficient initially |
 | Plugin API for code mods | Data-driven JSON modding sufficient initially |
