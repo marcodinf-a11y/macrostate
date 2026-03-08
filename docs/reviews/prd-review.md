@@ -153,7 +153,7 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 |---|---|---|
 | ~~A15~~ | ~~FR-CTL-001 vs FR-AGT-001~~ | ~~Player controls 3 spending buckets but public employment costs relationship unspecified~~ — ✅ Resolved by ADR-0018: two-layer spending architecture with explicit compensation shares per functional division |
 | ~~A16~~ | ~~FR-SIM-001~~ | ~~"Government + Private = 0" but CB balance sheet treatment unclear~~ — ✅ Resolved: FR-SIM-001 now specifies 5 institutional sectors in engine, 3 analytical sectors via consolidation, explicit cancellation rules for intra-government items, and full three-sector identity (Government + Private + Foreign = 0, Foreign = 0 for MVP) |
-| A17 | FR-BNK-003 | Mortgages "secured by housing" but no housing asset/sector exists |
+| ~~A17~~ | ~~FR-BNK-003~~ | ~~Mortgages "secured by housing" but no housing asset/sector exists~~ — ✅ Resolved: Housing market fully specified as distinct real asset on household balance sheet (perpetual inventory, endogenous pricing, collateral-based default). Mortgages specified as fixed-rate amortizing with DTI + LTV evaluation. Consumption function extended with disaggregated wealth effects (Zezza 2008). FR-BNK-006 and FR-HSG-001 added to PRD. |
 
 ### Unaddressed Edge Cases
 
@@ -183,7 +183,7 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 - ~~G8-G12: Rationing, AIDS validation, disposable income, gov wages, procurement mapping~~ ✅
 - ~~A15: Spending buckets vs employment costs~~ ✅ (ADR-0018)
 - ~~A16: CB balance sheet treatment in sectoral identity~~ ✅
-- A17: Internal contradiction (mortgages)
+- ~~A17: Internal contradiction (mortgages)~~ ✅
 - C4-C6: ECONOMIC-MODEL.md cross-doc fixes
 
 ### Lower (design detail to resolve during implementation)

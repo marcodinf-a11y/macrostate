@@ -32,9 +32,10 @@ Every financial instrument is an asset for one sector and a liability for anothe
 | Loans (L) | −L_h | −L_f | | | +(L_h+L_f) | | 0 |
 | Bonds (B) | | | −B_s | +B_cb | +B_b | | 0 |
 | Capital goods (K) | | +K | | | | | +K |
-| **Net worth** | **NW_h** | **NW_f** | **NW_g** | **NW_cb** | **NW_b** | **0** | **−K** |
+| Housing stock (H_r) | +H_r | | | | | | +H_r |
+| **Net worth** | **NW_h** | **NW_f** | **NW_g** | **NW_cb** | **NW_b** | **0** | **−(K+H_r)** |
 
-Note: Capital goods (K) are real assets with no corresponding liability, so the net worth row sums to −K (total financial net worth equals zero; total net worth including real assets equals +K). Foreign sector = 0 for MVP (closed economy); columns and instruments for foreign assets/liabilities are added post-MVP.
+Note: Capital goods (K) and housing stock (H_r) are real assets with no corresponding liability, so the net worth row sums to −(K+H_r) (total financial net worth equals zero; total net worth including real assets equals K+H_r). Housing stock is a durable real asset held by households, produced by the Construction sector (see [Housing Market](#housing-market)). Household loans (L_h) include both consumer loans and mortgages; the collateral relationship between mortgages and housing is tracked in loan-level data, not as a separate balance sheet instrument. Foreign sector = 0 for MVP (closed economy); columns and instruments for foreign assets/liabilities are added post-MVP.
 
 ### Sectoral Balances Identity
 
@@ -255,18 +256,21 @@ Banking is modeled as a credit-creation and payments sector, not as a production
 | Class | Characteristics |
 |---|---|
 | **Low income** | High propensity to consume. Budget share heavily weighted toward agriculture and basic manufacturing. Minimal savings. May take on debt for necessities. |
-| **Middle income** | Moderate consumption and saving. More balanced budget shares across sectors. Take on debt for housing (mortgages). Some discretionary spending on services. |
-| **High income** | Low propensity to consume (relative to income). Budget share shifts toward services and discretionary manufacturing. Significant savings. |
+| **Middle income** | Moderate consumption and saving. More balanced budget shares across sectors. Take on mortgage debt for housing. Some discretionary spending on services. |
+| **High income** | Low propensity to consume (relative to income). Budget share shifts toward services and discretionary manufacturing. Significant savings. Housing wealth accumulation via owned housing stock. |
 
 **Balance sheet tracks:**
 - Deposit account at bank (asset)
-- Debts / loans (liabilities)
-- Net wealth
+- Housing stock (real asset — valued at current market price, see [Housing Market](#housing-market))
+- Consumer loans (liabilities)
+- Mortgages (liabilities — secured by housing stock)
+- Net wealth = deposits + housing value - consumer loans - mortgage debt
 
 **Behavior:**
 - Supply labor to firms and government (see Labor Market)
-- Consume according to the AIDS demand system — budget shares across sectors determined by income and prices (see Consumption Model)
-- Save surplus income
+- Consume according to the two-stage budgeting model: the consumption function determines total expenditure from income and wealth, then AIDS allocates it across sectors (see [Consumption Function](#consumption-function) and [Consumption Model](#consumption-model-almost-ideal-demand-system-aids))
+- Save surplus income (savings = disposable income - consumption expenditure)
+- Purchase housing from the Construction sector, financed by savings (down payment) and mortgage borrowing (see [Housing Market](#housing-market))
 - Borrow from banks for asset/durable goods purchases (see [Household Borrowing](#household-borrowing))
 - Pay taxes on income
 
@@ -278,7 +282,7 @@ All firms are profit-driven: they estimate demand, consider costs, and make prod
 |---|---|---|---|
 | **Agriculture & Primary** | Labor, land | Food, raw materials | Land-constrained, seasonal, low labor elasticity. Small GDP share but essential. |
 | **Manufacturing** | Labor, raw materials, capital goods | Manufactured goods, capital goods | Capital-intensive. Produces both consumer goods and investment goods for all sectors. |
-| **Construction** | Labor, manufactured materials, capital goods | Built structures, infrastructure | Highly cyclical, labor-intensive. Key channel for government infrastructure investment. |
+| **Construction** | Labor, manufactured materials, capital goods | Built structures, infrastructure, housing units | Highly cyclical, labor-intensive. Key channel for government infrastructure investment. Produces housing as a distinct durable asset for households (see [Housing Market](#housing-market)), alongside commercial/infrastructure construction output. |
 | **Services** | Labor, capital goods | Services (retail, transport, healthcare, education, hospitality, professional) | Labor-intensive, largest employment share. Heterogeneous but shares key input characteristics. |
 
 **Sector expansion:** Sectors expand via a sub-sector hierarchy. Each top-level sector may contain sub-sectors with independent production functions and AIDS demand parameters. For example, Services may split into Healthcare, Education, Hospitality, and Professional Services. Sub-sectors are identified by a `parentId` field in `sectors.json`. The AIDS demand system extends naturally — a 4-sector parameter matrix becomes an 8-sector or 12-sector matrix.
@@ -439,9 +443,60 @@ Labor productivity = Output / Workers employed
 - If wages rise 5% and productivity rises 2% -> ULC rises 3% -> cost-push price pressure
 - If wages rise 2% and productivity rises 4% -> ULC falls 2% -> prices can fall or margins improve
 
+## Consumption Function
+
+Household consumption uses **two-stage budgeting** (Deaton & Muellbauer 1980, Godley & Lavoie 2012):
+
+1. **Stage 1 — Consumption function:** Determines total consumption expenditure (M_c) from income and wealth
+2. **Stage 2 — AIDS allocation:** Allocates M_c across sectors based on prices and real income
+
+### Total Consumption Expenditure
+
+For household class _c_:
+
+```
+M_c = alpha1_c * YD_c + alpha_f_c * V_f_c(-1) + alpha_h_c * V_h_c(-1)
+
+Where:
+  YD_c     = disposable income (post-tax income - debt service payments)
+  V_f_c    = financial wealth (bank deposits)
+  V_h_c    = housing wealth (housing stock value at current market price - mortgage debt outstanding)
+  alpha1_c = propensity to consume out of income (0 < alpha1 < 1)
+  alpha_f_c = marginal propensity to consume out of financial wealth
+  alpha_h_c = marginal propensity to consume out of housing wealth
+  (-1)     = lagged one tick (previous period's wealth)
+```
+
+This is the standard Godley/Lavoie consumption function extended with disaggregated wealth (Zezza 2008). The saving rate emerges endogenously: `savings_c = YD_c - M_c + capital_gains_c`.
+
+### Wealth Decomposition
+
+Total household net wealth decomposes into two components with distinct propensities:
+
+- **Financial wealth (V_f):** Bank deposits. Liquid, immediately available. Lower MPC because households treat liquid savings as a buffer.
+- **Housing wealth (V_h):** Market value of housing stock minus mortgage debt outstanding. Illiquid but large. Higher MPC because housing price changes feel permanent and affect borrowing capacity (collateral channel).
+
+### Parameter Calibration
+
+Per-class propensities are loaded from data files. Empirical ranges (annual, from Case/Quigley/Shiller 2005, Zezza 2008, ECB WP 1283):
+
+| Parameter | Range | Notes |
+|---|---|---|
+| alpha1 (income) | 0.70 – 0.95 | Higher for low income (consume more of income), lower for high income |
+| alpha_f (financial wealth) | 0.02 – 0.05 | Lower than housing MPC due to buffer motive |
+| alpha_h (housing wealth) | 0.03 – 0.09 | Higher than financial MPC — housing wealth perceived as permanent |
+
+**Key property:** alpha_h ≥ alpha_f is the empirical consensus. This means housing price changes have a larger impact on consumption than equivalent changes in financial wealth, despite housing being less liquid. This reflects housing's wider distribution across income groups and the collateral channel (rising house prices → more borrowing capacity → more spending).
+
+### Interaction with AIDS
+
+The consumption function determines _how much_ to spend. AIDS determines _what_ to spend it on. Housing wealth affects total expenditure but does not enter the AIDS budget share equation — the allocation across sectors is driven by relative prices and real income, not by the composition of wealth. This separation is the standard two-stage budgeting approach in consumer demand theory.
+
+Housing purchases are _not_ part of AIDS consumption demand. Housing is an asset purchase funded by savings (down payment) and mortgage borrowing, handled separately in the [Housing Market](#housing-market) section.
+
 ## Consumption Model: Almost Ideal Demand System (AIDS)
 
-Household consumption is modeled using the Almost Ideal Demand System (Deaton & Muellbauer, 1980). AIDS determines how each household class allocates its budget across production sectors based on current prices and real income.
+Household consumption is modeled using the Almost Ideal Demand System (Deaton & Muellbauer, 1980). AIDS determines how each household class allocates its total consumption expenditure (M_c, from the [Consumption Function](#consumption-function) above) across production sectors based on current prices and real income.
 
 ### The AIDS Formula
 
@@ -456,7 +511,7 @@ Where:
 - `alpha_ci` is the intercept — the baseline budget share at reference prices and income
 - `gamma_cij` captures how the budget share for sector _i_ responds to a change in sector _j_'s price (own-price and cross-price effects)
 - `beta_ci` captures how the budget share changes as real income changes (income elasticity)
-- `M_c` is disposable income for household class _c_ (post-tax income + available credit - debt service)
+- `M_c` is total consumption expenditure for household class _c_ (determined by the [Consumption Function](#consumption-function) — a function of disposable income and lagged wealth)
 - `P` is a price index (Stone price index: `ln(P) = SUM_i(w_ci * ln(p_i))`)
 - `p_j` is the price of sector _j_'s output
 
@@ -496,10 +551,13 @@ Different country parameter sets (Germany, Brazil, Nigeria, etc.) can be loaded 
 
 Each tick, the consumption engine:
 
-1. Computes budget shares `w_ci` for each household class and sector using current prices and income
-2. Converts to nominal demand: `demand_ci = w_ci * M_c`
-3. Passes the demand vector to the goods market for fulfillment against sector inventory/capacity
-4. If demand exceeds supply, rationing occurs — unmet demand feeds into the next tick's price adjustments via the pricing engine
+1. Computes total consumption expenditure `M_c` for each household class using the [Consumption Function](#consumption-function) (income + lagged wealth)
+2. Computes budget shares `w_ci` for each household class and sector using current prices and real income via AIDS
+3. Converts to nominal demand: `demand_ci = w_ci * M_c`
+4. Passes the demand vector to the goods market for fulfillment against sector inventory/capacity
+5. If demand exceeds supply, rationing occurs — unmet demand feeds into the next tick's price adjustments via the pricing engine
+
+Note: Housing purchases are handled separately in the [Housing Market](#housing-market), not through this consumption demand pipeline.
 
 ## Labor Market: Wage Posting
 
@@ -585,7 +643,7 @@ See [Household Borrowing](#household-borrowing) for the full specification. DTI 
 ### Loan Types
 - **Business loans** — for firms investing in capital goods. Evaluated via DSCR. Term matched to capital useful life.
 - **Household consumer loans** — amortizing installment loans for asset/durable goods purchases. Evaluated via DTI. Fixed 60-tick (5-year) term. _(post-MVP)_
-- **Household mortgages** — long-term amortizing loans for housing purchases. Evaluated via DTI + LTV. Fixed 360-tick (30-year) term. Requires housing market subsystem. _(post-MVP, draft — see [Housing Market](#housing-market-draft))_
+- **Household mortgages** — long-term amortizing loans for housing purchases. Evaluated via DTI + LTV. Fixed 360-tick (30-year) term. Secured by housing stock with collateral-based default. _(post-MVP — see [Housing Market](#housing-market))_
 
 ### Firm Loan Structure
 
@@ -676,24 +734,169 @@ Borrowing rules are uniform across all household classes. The DTI threshold, loa
 
 _Post-MVP: Household borrowing (consumer loans) is fully specified here but deferred to post-MVP implementation. The MVP banking system handles firm lending only. See [MVP-SCOPE.md](../requirements/MVP-SCOPE.md)._
 
-### Housing Market (DRAFT)
+### Housing Market
 
-> **Status: Open for discussion.** This section outlines the full-game vision for housing and mortgages. It is not yet fully specified and requires further design work before implementation.
+The housing market models residential real estate as a distinct durable asset on the household balance sheet, financed by mortgage lending. This follows the SFC housing literature (Zezza 2007/2008, Nikolaidi 2014, Herbillon-Leprince 2016) and produces some of the most policy-relevant economic dynamics in the simulation — housing bubbles, wealth effects, balance sheet recessions, and financial contagion through bank losses.
 
-The full game introduces a **housing market** with mortgage-backed lending. This is one of the most important credit channels in a real economy — mortgage debt is ~70% of US household debt, and housing credit cycles drive some of the most consequential macroeconomic dynamics (housing bubbles, wealth effects, balance sheet recessions).
+Mortgage debt is ~70% of US household debt (NY Fed Household Debt and Credit Report, Q4 2024). Housing credit cycles drive the most consequential macroeconomic dynamics. A player who deregulates lending standards sees a housing boom followed by a financial crisis. A player who tightens LTV ratios sees stable but slower growth. This is a rich policy lever.
 
-**Key design elements to resolve:**
+#### Housing Stock
 
-1. **Housing stock:** Construction sector produces housing units. Housing is a durable asset on the household balance sheet, distinct from consumption goods.
-2. **House prices:** Endogenous, driven by supply (construction output) and demand (household income, credit availability, interest rates). Simplest viable model: price adjusts based on inventory of unsold houses relative to a target vacancy rate.
-3. **Mortgages:** 360-tick (30-year) fixed amortizing loans. Evaluated via DTI (existing) + LTV (loan-to-value ratio — loan amount relative to house price). LTV threshold (e.g., 80%) is a moddable bank parameter.
-4. **Collateral and default:** On mortgage default, the bank repossesses the house. Recovery value depends on current house price — if prices have fallen, the bank takes a larger loss (negative equity). This creates the realistic feedback loop: defaults → bank losses → tighter lending → lower house prices → more defaults.
-5. **Wealth effects:** Housing wealth affects household spending via a marginal propensity to consume out of wealth. Rising house prices → households feel wealthier → spend more. Falling prices → retrenchment.
-6. **No secondary housing market initially:** Households buy new houses from the Construction sector only. Resale between households is a further extension.
+Housing is a **durable real asset** held by households, distinct from consumption goods. It appears as a row in the balance sheet matrix (H_r) and is produced by the Construction sector as a distinct output type alongside commercial construction and infrastructure.
 
-**Why this matters for the game:** Housing/mortgage dynamics produce some of the most dramatic and policy-relevant economic cycles. A player who deregulates lending standards sees a housing boom followed by a financial crisis. A player who tightens LTV ratios sees stable but slower growth. This is a rich policy lever.
+Housing stock accumulates via the **perpetual inventory method** (standard SFC convention):
 
-**Dependencies:** Construction sector must produce housing as a distinct output type. Bank balance sheet must track mortgage assets separately. Household balance sheet must track housing wealth.
+```
+H_r(t) = H_r(t-1) + I_h(t) - delta_h * H_r(t-1)
+
+Where:
+  H_r    = housing stock (aggregate units)
+  I_h    = residential investment (new housing output from Construction sector)
+  delta_h = housing depreciation rate per tick (loaded from data files, e.g., 0.002 per month ≈ 2.4% annually)
+```
+
+The Construction sector splits its output between **commercial/infrastructure construction** (demanded by firms and government through normal sector demand channels) and **residential construction** (demanded by households in the housing market). The split is driven by relative demand, not a fixed ratio — if households want more housing, Construction shifts resources toward residential output, subject to its production capacity.
+
+#### House Prices
+
+House prices are **endogenous**, determined by supply and demand in the housing market. The pricing mechanism follows inventory-based adjustment, consistent with the markup pricing used elsewhere in the model:
+
+```
+p_h(t) = p_h(t-1) * (1 + adjustment)
+
+adjustment = priceAdjustSpeed * (targetVacancyRate - actualVacancyRate) / targetVacancyRate
+
+Where:
+  actualVacancyRate = unsoldHousingStock / totalHousingStock
+  targetVacancyRate = loaded from data files (e.g., 0.07 — roughly US historical average)
+  priceAdjustSpeed  = loaded from data files (controls price stickiness)
+```
+
+- When vacancy is **below target** (tight market): adjustment > 0, prices rise
+- When vacancy is **above target** (loose market): adjustment < 0, prices fall
+- When vacancy **at target**: prices stable
+
+Price adjustment uses the same **asymmetric speeds** as the markup system — upward adjustment is faster than downward adjustment, reflecting observed house price stickiness (sellers resist lowering asking prices).
+
+**Capital gains** on the existing housing stock are:
+
+```
+CG_h(t) = (p_h(t) - p_h(t-1)) * H_r_owned(t-1)
+```
+
+Capital gains enter the household wealth accumulation identity and affect consumption via the housing wealth channel in the [Consumption Function](#consumption-function). They are unrealized — households do not receive cash from capital gains, but their balance sheet net worth changes, affecting their propensity to consume.
+
+#### Household Housing Demand
+
+Households seek to purchase housing when they do not currently own housing and can afford a down payment. The housing purchase decision is separate from consumption demand (not allocated via AIDS):
+
+```
+Household seeks housing if:
+  1. Does not currently own housing (or owns below a class-specific target, loaded from data files)
+  2. Has sufficient savings for the down payment: savings >= (1 - LTV_max) * p_h
+  3. Would pass the bank's mortgage evaluation (DTI + LTV check)
+```
+
+The down payment requirement is implicit in the LTV constraint — if LTV_max = 0.80, the household must fund 20% of the purchase price from savings.
+
+#### Mortgage Specification
+
+Mortgages are **fixed-rate amortizing loans** secured by the housing asset:
+
+```
+Mortgage parameters:
+  Term:     360 ticks (30 years), loaded from bank parameters, moddable
+  Rate:     lending rate at origination (CB policy rate + bank spread + risk premium), fixed for life of loan
+  LTV_max:  maximum loan-to-value ratio (e.g., 0.80 = 80%), loaded from bank parameters, moddable
+  Amount:   min(LTV_max * p_h, p_h - savings_available)
+
+Monthly payment = Principal * [r(1+r)^n] / [(1+r)^n - 1]
+
+Where:
+  r = monthly lending rate (annual rate / 12)
+  n = remaining term in ticks
+```
+
+#### Mortgage Evaluation
+
+Banks evaluate mortgage applications using **dual criteria** — both must pass:
+
+```
+1. DTI check (same as consumer loans):
+   Approved if: (existing debt service + new mortgage payment) / gross income < DTI_threshold
+   DTI_threshold ≈ 0.40 (40%), loaded from bank parameters, moddable
+
+2. LTV check (mortgage-specific):
+   Approved if: loan amount / house price <= LTV_threshold
+   LTV_threshold ≈ 0.80 (80%), loaded from bank parameters, moddable
+```
+
+The LTV threshold is a key policy lever. Lower LTV → larger down payments → fewer buyers qualify → slower housing appreciation → more stable but less accessible market. Higher LTV → easier entry → faster price appreciation → higher systemic risk.
+
+#### Collateral-Based Default
+
+Mortgage default follows different mechanics from unsecured consumer loan default, reflecting the collateral relationship:
+
+```
+Mortgage default triggers:
+  Household has zero income AND zero savings (deposits) for N consecutive ticks
+  (same trigger as consumer loan default; N loaded from bank parameters, moddable)
+
+On mortgage default:
+  1. Bank repossesses the housing asset
+  2. Recovery value = current market price of the house (p_h at time of default)
+  3. If recovery >= outstanding mortgage balance: bank is made whole, surplus returned to household
+  4. If recovery < outstanding mortgage balance: bank absorbs loss = balance - recovery (negative equity)
+  5. Loss absorbed first by loan loss reserve, then by bank equity
+  6. Repossessed housing enters unsold housing stock (increases vacancy rate, pushes prices down)
+  7. Household loses housing asset from balance sheet; housing wealth drops to zero
+```
+
+This creates the realistic **doom loop** feedback mechanism:
+- Defaults → bank repossession → more unsold housing → lower prices → more negative equity → more defaults
+- Banks absorb losses → capital ratio worsens → tighter lending standards → fewer new mortgages → lower demand → lower prices
+
+The doom loop is self-reinforcing and produces the kind of housing crises observed in 2007-09. The player's policy levers (LTV requirements, interest rates, fiscal stimulus) determine whether and how severely this cycle plays out.
+
+#### SFC Accounting for Housing Transactions
+
+A housing purchase creates the following balance sheet changes:
+
+```
+Household buys a house for $200,000 with 20% down payment, 80% mortgage:
+
+Household balance sheet:
+  Assets:  -$40,000 deposits (down payment)
+           +$200,000 housing stock (at purchase price)
+  Liabilities: +$160,000 mortgage debt
+  Net worth change: +$0 (assets up $160k, liabilities up $160k)
+
+Bank balance sheet:
+  Assets:  +$160,000 mortgage receivable
+  Liabilities: +$160,000 deposits (credited to seller — Construction sector firm)
+  Net worth change: $0
+
+Construction sector firm:
+  Assets:  +$200,000 deposits ($40k from buyer's savings + $160k new money from mortgage)
+  Inventory: -1 housing unit (delivered to buyer)
+```
+
+The mortgage creates $160,000 of new deposit money (endogenous money creation). The down payment transfers $40,000 of existing deposits. The Construction firm receives $200,000 total, which it uses to pay wages, buy materials, and earn profit — feeding back into the circular flow.
+
+Monthly mortgage payments:
+- Interest portion → bank revenue (not destroyed)
+- Principal portion → money destruction (deposits and loan shrink symmetrically)
+
+This is identical to the loan mechanics described in [Household Borrowing](#household-borrowing), with the addition of the collateral relationship.
+
+#### Future Extensions
+
+The following are explicitly deferred and not part of the current specification:
+
+- **Variable-rate mortgages:** Interest rate adjusts with CB policy rate. Would make monetary policy transmission more direct — rate hikes immediately squeeze existing borrowers, not just new ones. Significant policy lever.
+- **Refinancing:** Households replace existing mortgage with new one at current rates. Introduces rate-sensitivity in the existing stock of mortgages, not just new origination.
+- **Secondary housing market:** Households sell housing to other households (resale). Currently, households only buy new housing from Construction. A secondary market would decouple house prices from construction costs and enable speculative dynamics.
+- **Home equity lines of credit (HELOC):** Borrowing against housing equity for consumption. Would create an additional channel from house prices to aggregate demand, amplifying wealth effects.
 
 ## Government Bonds: Auction-Based
 

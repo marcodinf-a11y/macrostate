@@ -136,7 +136,7 @@ Each sector uses fixed-proportion inputs (Leontief production function) — inpu
 |---|---|---|
 | Agriculture & Primary | Labor, land | Food, raw materials |
 | Manufacturing | Labor, raw materials, capital goods | Manufactured goods, capital goods |
-| Construction | Labor, manufactured materials, capital goods | Built structures, infrastructure |
+| Construction | Labor, manufactured materials, capital goods | Built structures, infrastructure, housing units |
 | Services | Labor, capital goods | Services (retail, transport, healthcare, etc.) |
 
 ## Map & Visuals

@@ -63,11 +63,15 @@ Macrostate is an open source, single-player economic simulation game built on Mo
   - Capacity utilization per sector
   - Unit labor costs per sector
   - Public sector employment share
-  - Private debt level
+  - Private debt level (consumer loans + mortgages)
   - Bank reserves
   - Bond yields (weighted average coupon rate across outstanding bonds)
   - Savings rate
   - Wage growth
+  - House price index _(post-MVP)_
+  - Housing vacancy rate _(post-MVP)_
+  - Household housing wealth _(post-MVP)_
+  - Mortgage debt outstanding _(post-MVP)_
 
 ### 2.2 Economic Agents
 
@@ -117,8 +121,12 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 - Each class must have distinct AIDS parameters (alpha, beta, gamma) reflecting empirically different consumption patterns
 - Price elasticity and income elasticity must emerge from the AIDS parameters, not be hardcoded separately
 - Budget shares must sum to 1 for each household class (adding-up constraint)
-- Disposable income for each household class must be calculated as: post-tax income + available credit - debt service payments
+- Total consumption expenditure (M_c) must be determined by a consumption function: `M_c = alpha1_c * YD_c + alpha_f_c * V_f_c(-1) + alpha_h_c * V_h_c(-1)`, where YD_c is disposable income (post-tax income - debt service), V_f_c is financial wealth (deposits), and V_h_c is housing wealth (housing value - mortgage debt)
+- Per-class consumption propensities (alpha1, alpha_f, alpha_h) must be loaded from data files
+- AIDS must allocate M_c (from the consumption function) across sectors — AIDS determines _what_ to spend on, the consumption function determines _how much_
 - AIDS parameters must be validated on load: adding-up (`SUM(alpha)=1`, `SUM(gamma)=0`, `SUM(beta)=0`), homogeneity (`SUM_j(gamma_ij)=0`), and symmetry (`gamma_ij=gamma_ji`) constraints must hold
+- Must track housing stock as a real asset on the household balance sheet, valued at current market price
+- Must track net wealth as: deposits + housing value - consumer loans - mortgage debt
 - Must supply labor to firms and government
 - Must accept/reject job offers based on reservation wage
 - Must be able to take on debt (consumer loans, mortgages)
@@ -136,6 +144,7 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 - Must set prices using cost-plus markup with demand adjustment
 - Must use unit labor costs (wages/productivity) not raw wages in pricing
 - Must invest in capital from retained profits and/or bank loans (capital goods produced by manufacturing sector)
+- Construction sector must produce housing units as a distinct durable asset output alongside commercial/infrastructure construction, with the split driven by relative demand
 - Must hold inventory of unsold goods
 - Must pay wages and taxes
 
@@ -206,20 +215,42 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 
 #### FR-BNK-003: Loan Types
 - Business loans: for firm capital investment, evaluated via DSCR
-- Household loans: amortizing installment loans for asset/durable goods purchases, evaluated via DTI _(post-MVP)_
+- Household consumer loans: amortizing installment loans for asset/durable goods purchases, evaluated via DTI _(post-MVP)_
+- Household mortgages: fixed-rate amortizing loans for housing purchases, evaluated via DTI + LTV, secured by housing asset _(post-MVP)_
 
 #### FR-BNK-004: Debt Service and Default
 - Borrowers must make periodic debt service payments (principal + interest)
 - If a borrower cannot pay, they must default
-- Defaults must result in a bank loss (write-off)
+- Unsecured loan defaults must result in a bank loss (full write-off)
+- Mortgage defaults must trigger collateral-based recovery: bank repossesses housing, recovery value equals current market price, bank absorbs any shortfall (negative equity) as a loss
+- Repossessed housing must enter unsold housing stock (increasing vacancy rate, exerting downward pressure on house prices)
 
-#### FR-BNK-005: Household Borrowing Decision _(post-MVP)_
+#### FR-BNK-005: Household Consumer Loans _(post-MVP)_
 - Households must be able to borrow via amortizing installment loans for asset/durable goods purchases
 - Bank must evaluate household loan applications using a DTI ratio threshold (default ~40%, moddable)
 - Approved loans must use fixed amortizing installments with term and rate loaded from bank parameters
 - Households must default when they have zero income AND zero savings for N consecutive ticks (N moddable)
 - On default: loan written off from bank's balance sheet, loss absorbed by loan loss reserve then equity, deposits already created remain in circulation
 - Borrowing rules must be uniform across household classes
+
+#### FR-BNK-006: Mortgage Lending _(post-MVP)_
+- Bank must evaluate mortgage applications using dual criteria: DTI ratio (same threshold as consumer loans) AND loan-to-value ratio (LTV_max, default ~80%, moddable)
+- Mortgage amount must not exceed LTV_max × current house price
+- Household must fund the remainder (down payment) from savings
+- Approved mortgages must use fixed-rate amortizing installments: rate fixed at origination for life of loan, term loaded from bank parameters (default 360 ticks = 30 years, moddable)
+- Mortgage interest portion is bank revenue; principal portion destroys deposit money (standard endogenous money mechanics)
+- Mortgage default must follow collateral-based recovery per FR-BNK-004
+- LTV_max must be a moddable bank parameter — it is a key policy lever affecting housing market stability
+
+#### FR-HSG-001: Housing Market _(post-MVP)_
+- Housing must be modeled as a distinct durable real asset on the household balance sheet, separate from consumption goods
+- Housing stock must accumulate via perpetual inventory: `H_r(t) = H_r(t-1) + I_h(t) - delta_h * H_r(t-1)`, with depreciation rate loaded from data files
+- Housing must be produced by the Construction sector as a distinct output type
+- House prices must be endogenous, adjusting based on vacancy rate relative to a target vacancy rate (loaded from data files)
+- House price adjustment must use asymmetric speeds (upward faster than downward), consistent with the markup pricing system
+- Capital gains on housing must enter household wealth and affect consumption via the housing wealth channel in the consumption function
+- Housing purchases must not flow through the AIDS demand system — they are asset acquisitions, not consumption
+- All housing transactions must maintain SFC accounting consistency: mortgage creation produces new deposits, down payments transfer existing deposits, monthly payments split into interest (bank revenue) and principal (money destruction)
 
 ### 2.6 Government Bonds
 
