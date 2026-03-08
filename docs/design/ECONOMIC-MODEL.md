@@ -11,19 +11,59 @@ The simulation uses double-entry bookkeeping for the entire economy. Every finan
 3. **Bank lending** — creates new deposit money (and a corresponding debt)
 4. **Loan repayment** — destroys deposit money (and extinguishes corresponding debt)
 
-At the end of every simulation tick, the accounting identity must hold:
+### Institutional Sectors and Balance Sheet Matrix
+
+The engine maintains separate balance sheets for six institutional sectors, following the standard SFC transaction flow matrix structure (Godley & Lavoie 2012, Ch. 6):
+
+1. **Households** — hold deposits, owe loans
+2. **Firms** — hold deposits and capital goods, owe loans
+3. **Government (Treasury)** — holds Treasury account at CB, owes bonds
+4. **Central Bank** — holds bonds and advances, owes reserves and Treasury account
+5. **Commercial Banks** — hold reserves, loans, and bonds; owe deposits
+6. **Foreign (Rest of World)** — zero balances for MVP (closed economy); post-MVP holds foreign assets/liabilities for trade and capital flows
+
+Every financial instrument is an asset for one sector and a liability for another. The **balance sheet matrix** captures this — each row (instrument) must sum to zero across all columns (sectors):
+
+| Instrument | Households | Firms | Treasury | Central Bank | Banks | Foreign | Sum |
+|---|---|---|---|---|---|---|---|
+| Treasury account | | | +T_a | −T_a | | | 0 |
+| Reserves (H) | | | | −H | +H | | 0 |
+| Deposits (D) | +D_h | +D_f | | | −(D_h+D_f) | | 0 |
+| Loans (L) | −L_h | −L_f | | | +(L_h+L_f) | | 0 |
+| Bonds (B) | | | −B_s | +B_cb | +B_b | | 0 |
+| Capital goods (K) | | +K | | | | | +K |
+| **Net worth** | **NW_h** | **NW_f** | **NW_g** | **NW_cb** | **NW_b** | **0** | **−K** |
+
+Note: Capital goods (K) are real assets with no corresponding liability, so the net worth row sums to −K (total financial net worth equals zero; total net worth including real assets equals +K). Foreign sector = 0 for MVP (closed economy); columns and instruments for foreign assets/liabilities are added post-MVP.
+
+### Sectoral Balances Identity
+
+For analytical and reporting purposes, the five institutional sectors consolidate into three:
+
+- **Government sector** = Treasury + Central Bank (consolidated)
+- **Domestic private sector** = Households + Firms + Commercial Banks
+- **Foreign sector** = 0 (MVP, closed economy)
+
+**Consolidation:** When Treasury and Central Bank are consolidated, intra-government items cancel:
+- Treasury account at CB: Treasury asset (+T_a) and CB liability (−T_a) → cancels
+- Bonds held by CB: Treasury liability (−B_cb) and CB asset (+B_cb) → cancels
+- Interest paid by Treasury to CB / CB profit remittance: intra-government flows that net to zero
+
+After consolidation, the government sector's liabilities to the private sector are **H + B_b** (reserves + privately-held bonds). The private sector's net financial assets vis-à-vis the government are exactly H + B_b.
+
+The **sectoral balances identity** must hold at the end of every tick:
 
 ```
 Government balance + Private sector balance + Foreign sector balance = 0
 ```
 
-In a closed economy (no foreign sector), Foreign = 0 and this simplifies to:
+For MVP (closed economy, Foreign = 0):
 
 ```
 Government balance + Private sector balance = 0
 ```
 
-This is not an assumption — it is enforced by the double-entry bookkeeping. Every dollar of government deficit is mechanically a dollar of private sector surplus.
+This is not an assumption — it is enforced by the double-entry bookkeeping. Every dollar of government deficit is mechanically a dollar of private sector surplus. Equivalently: the change in privately-held government liabilities (ΔH + ΔB_b) equals the government deficit (G + r·B_b − T) each tick.
 
 ## Two Money Circuits
 
@@ -173,6 +213,12 @@ The government's wage offers create a de facto wage floor. If the government pay
 ### Central Bank
 
 Operates the reserve system and sets monetary policy.
+
+**Balance sheet tracks:**
+- Government bonds held (assets) — acquired via open market operations or as buyer of last resort at primary auctions
+- Treasury account (liability) — the government's account at the central bank
+- Bank reserve accounts (liabilities) — reserves held by commercial banks
+- Net worth (typically zero or near-zero — CB remits profits to Treasury)
 
 **Actions:**
 - Maintain reserve accounts for commercial banks

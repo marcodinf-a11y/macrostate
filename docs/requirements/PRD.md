@@ -30,7 +30,14 @@ Macrostate is an open source, single-player economic simulation game built on Mo
 #### FR-SIM-001: Stock-Flow Consistent Accounting
 - The simulation must use double-entry bookkeeping for all financial transactions
 - Every monetary flow must have an explicit source and destination
-- The accounting identity (Government balance + Private balance = 0) must hold every tick. The central bank is consolidated with the government sector for SFC purposes (Treasury + CB = government sector); the private sector includes households, firms, and commercial banks. This is standard SFC convention per Godley & Lavoie (2012).
+- The engine must maintain separate balance sheets for six institutional sectors: Households, Firms, Government (Treasury), Central Bank, Commercial Banks, and Foreign (Rest of World). Every financial instrument appears as an asset in one sector and a liability in another. This follows the standard SFC transaction flow matrix structure per Godley & Lavoie (2012, Ch. 6). The Foreign sector has zero balances for MVP (closed economy) but must exist as a sector from day one to avoid restructuring the accounting identity when open-economy features are added post-MVP.
+- **Balance sheet matrix consistency:** Every row (financial instrument) in the balance sheet matrix must sum to zero across all sector columns at every tick. This is the primary SFC consistency check.
+- **Sectoral balances identity:** For analytical and reporting purposes, the five institutional sectors consolidate into three: Government (Treasury + Central Bank), Domestic Private (Households + Firms + Commercial Banks), and Foreign. The identity `Government balance + Private balance + Foreign balance = 0` must hold every tick. Foreign balance = 0 for MVP (closed economy).
+- **Consolidation rule:** When consolidating Treasury and Central Bank into the Government sector, the following intra-government items cancel and must not appear in the consolidated balance sheet:
+  - Treasury account at Central Bank (Treasury asset, CB liability)
+  - Bonds held by Central Bank (Treasury liability, CB asset)
+  - Interest paid by Treasury to Central Bank / CB profit remittance to Treasury (these are intra-government flows that net to zero)
+- After consolidation, the Government sector's liabilities to the private sector are: reserves (high-powered money, H) + bonds held by the private sector (B_priv). The private sector's net financial assets vis-à-vis the government are H + B_priv.
 - An SFC consistency check must be runnable at any time and must pass
 
 #### FR-SIM-002: Two Money Circuits
