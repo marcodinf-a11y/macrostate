@@ -33,6 +33,18 @@ For small rates, `annual ≈ monthly × 12` is a reasonable approximation.
 
 > **Note:** Private sector depreciation rates are per-sector properties defined in `sectors.json` (`capitalDepreciationRate` field), not in `parameters.json`. See MODDING.md for the sector data format.
 
+## Bank Lending Parameters
+
+| Parameter path | Value | Unit | Rationale |
+|---|---|---|---|
+| `bank.spread` | 0.002 | per tick (monthly) | ~2.4% annual spread over policy rate. Represents bank's base profit margin on lending. US commercial bank net interest margins have averaged 2.5-3.5% in recent decades (FDIC data). |
+| `bank.firmDSCRThreshold` | 1.25 | ratio | Standard commercial lending minimum. A DSCR of 1.25 means the firm's net operating income is 25% above total debt service — the most common floor in US commercial lending (Corporate Finance Institute). |
+| `bank.householdDTIThreshold` | 0.40 | ratio | 40% debt-to-income threshold for household loans. Sits within the conventional US lending range (36-43%). Below 36% is considered excellent; above 50% is generally unacceptable. _(post-MVP — household borrowing is deferred)_ |
+| `bank.householdLoanTerm` | 60 | ticks (months) | 5-year loan term for household installment loans. Balances between short consumer loans (12-36 months) and long mortgages (180-360 months). _(post-MVP)_ |
+| `bank.defaultGracePeriod` | 3 | ticks (months) | Number of consecutive ticks with zero income AND zero savings before a household defaults. Provides a short buffer against temporary income loss. _(post-MVP)_ |
+| `bank.firmDefaultGracePeriod` | 3 | ticks (months) | Number of consecutive ticks a firm can miss debt service before default is triggered. |
+| `bank.maxFirmLoanTerm` | 120 | ticks (months) | Maximum firm loan term (10 years). Firm loan terms are derived from capital useful life (`1/depreciationRate`) but capped at this value. Prevents unreasonably long loans in low-depreciation sectors. Matches the upper end of typical US commercial bank term loans (3-10 years). |
+
 | `investment.lags.infrastructureToCapacity.min` | 6 | ticks (months) | FR-TIM-001 specifies 6-12 ticks. Minimum reflects fast-track infrastructure projects (equipment upgrades, minor expansions). |
 | `investment.lags.infrastructureToCapacity.max` | 12 | ticks (months) | FR-TIM-001 specifies 6-12 ticks. Maximum reflects major projects (new facilities, transportation infrastructure). Actual lag for each investment is drawn uniformly from [min, max]. |
 | `investment.lags.servicesToProductivity.min` | 12 | ticks (months) | FR-TIM-001 specifies 12-24 ticks. Education, training, and institutional improvements take longer to translate into measurable productivity gains. |

@@ -191,14 +191,14 @@ Political fiscal constraints (debt ceilings, balanced budget rules) are self-imp
 - Loan repayment must destroy deposits and extinguish the corresponding loan
 
 #### FR-BNK-002: Creditworthiness Assessment
-- Banks must evaluate: borrower income, existing debt-to-income ratio, and collateral (for secured loans)
+- Banks must evaluate firms using DSCR (Debt Service Coverage Ratio): net operating income / total debt service ≥ 1.25 (moddable threshold)
+- Banks must evaluate households using DTI (Debt-to-Income Ratio): total debt service / gross income < 0.40 (moddable threshold) _(post-MVP)_
 - Lending rate must be: CB policy rate + bank spread + risk premium
 - Higher risk borrowers must face higher rates or rejection
 
 #### FR-BNK-003: Loan Types
-- Consumer loans: short-term, unsecured, for household expenses
-- Mortgages: long-term, secured by housing, for shelter needs. _MVP simplification: housing is not modeled as an explicit asset class. Mortgage collateral value is a fixed notional amount per household class. A housing market with price dynamics is a post-MVP enhancement._
-- Business loans: for firm capital investment and operating costs
+- Business loans: for firm capital investment, evaluated via DSCR
+- Household loans: amortizing installment loans for asset/durable goods purchases, evaluated via DTI _(post-MVP)_
 
 #### FR-BNK-004: Debt Service and Default
 - Borrowers must make periodic debt service payments (principal + interest)

@@ -510,15 +510,52 @@ Where:
 ```
 
 ### Creditworthiness Assessment
-Banks evaluate potential borrowers on:
-1. **Income** — is the borrower's income sufficient to service the debt?
-2. **Existing debt** — debt-to-income ratio. Higher existing debt -> higher risk -> higher premium or rejection.
-3. **Collateral** — for secured loans (mortgages), the value of the asset backing the loan.
+
+Banks use different metrics for firms and households, reflecting real-world commercial vs consumer lending practice.
+
+**Firms — Debt Service Coverage Ratio (DSCR):**
+
+```
+Approved if: Net Operating Income / Total Debt Service ≥ DSCR_threshold
+
+Where:
+  Net Operating Income = revenue - operating costs (before debt service)
+  Total Debt Service = principal + interest payments on all existing debt + proposed new debt
+  DSCR_threshold ≈ 1.25 (standard commercial lending minimum)
+  DSCR_threshold is loaded from bank parameters (data file) and is moddable
+```
+
+A DSCR of 1.25 means the firm's operating income is 25% above what's needed to cover all debt payments — a standard safety margin in commercial lending. Higher DSCR → lower risk premium on the lending rate. Below 1.25 → loan denied.
+
+**Households — Debt-to-Income Ratio (DTI):**
+
+See [Household Borrowing](#household-borrowing) for the full specification. DTI threshold ≈ 0.40 (40%).
 
 ### Loan Types
-- **Consumer loans** — short-term, unsecured. For households needing to cover expenses.
-- **Mortgages** — long-term, secured by housing. For household shelter needs.
-- **Business loans** — for firms investing in capital goods or covering operating costs.
+- **Business loans** — for firms investing in capital goods. Evaluated via DSCR. Term matched to capital useful life.
+- **Household consumer loans** — amortizing installment loans for asset/durable goods purchases. Evaluated via DTI. Fixed 60-tick (5-year) term. _(post-MVP)_
+- **Household mortgages** — long-term amortizing loans for housing purchases. Evaluated via DTI + LTV. Fixed 360-tick (30-year) term. Requires housing market subsystem. _(post-MVP, draft — see [Housing Market](#housing-market-draft))_
+
+### Firm Loan Structure
+
+Firm loans use the same **fixed amortizing installments** as household loans, with the term derived from capital useful life:
+
+```
+Payment = Principal × [r(1+r)^n] / [(1+r)^n - 1]
+
+Where:
+  r = lending rate per period (CB policy rate + bank spread + risk premium)
+  n = min(floor(1 / depreciationRate), maxFirmLoanTerm)
+
+  depreciationRate = sector-specific per-tick geometric depreciation rate (ADR-0012)
+  maxFirmLoanTerm = cap from bank parameters (default: 120 ticks / 10 years)
+
+Each payment splits into:
+  Interest portion = outstanding balance × r  (bank revenue, not destroyed)
+  Principal portion = payment - interest       (money destruction)
+```
+
+This matches real-world commercial lending practice where equipment loan terms are tied to the useful life of the financed asset. The cap prevents unreasonably long loans in sectors with very low depreciation rates.
 
 ### Credit Creation Mechanics
 When a loan is approved:
@@ -586,7 +623,26 @@ This correctly reflects the MMT/endogenous money view: when a loan is created, n
 #### Uniform Across Household Classes
 Borrowing rules are uniform across all household classes. The DTI threshold, loan terms, and default triggers do not vary by class. Differences in borrowing outcomes emerge naturally from differences in income levels and existing debt loads.
 
-_Post-MVP: Household borrowing is fully specified here but deferred to post-MVP implementation. The MVP banking system handles firm lending only. See [MVP-SCOPE.md](../requirements/MVP-SCOPE.md)._
+_Post-MVP: Household borrowing (consumer loans) is fully specified here but deferred to post-MVP implementation. The MVP banking system handles firm lending only. See [MVP-SCOPE.md](../requirements/MVP-SCOPE.md)._
+
+### Housing Market (DRAFT)
+
+> **Status: Open for discussion.** This section outlines the full-game vision for housing and mortgages. It is not yet fully specified and requires further design work before implementation.
+
+The full game introduces a **housing market** with mortgage-backed lending. This is one of the most important credit channels in a real economy — mortgage debt is ~70% of US household debt, and housing credit cycles drive some of the most consequential macroeconomic dynamics (housing bubbles, wealth effects, balance sheet recessions).
+
+**Key design elements to resolve:**
+
+1. **Housing stock:** Construction sector produces housing units. Housing is a durable asset on the household balance sheet, distinct from consumption goods.
+2. **House prices:** Endogenous, driven by supply (construction output) and demand (household income, credit availability, interest rates). Simplest viable model: price adjusts based on inventory of unsold houses relative to a target vacancy rate.
+3. **Mortgages:** 360-tick (30-year) fixed amortizing loans. Evaluated via DTI (existing) + LTV (loan-to-value ratio — loan amount relative to house price). LTV threshold (e.g., 80%) is a moddable bank parameter.
+4. **Collateral and default:** On mortgage default, the bank repossesses the house. Recovery value depends on current house price — if prices have fallen, the bank takes a larger loss (negative equity). This creates the realistic feedback loop: defaults → bank losses → tighter lending → lower house prices → more defaults.
+5. **Wealth effects:** Housing wealth affects household spending via a marginal propensity to consume out of wealth. Rising house prices → households feel wealthier → spend more. Falling prices → retrenchment.
+6. **No secondary housing market initially:** Households buy new houses from the Construction sector only. Resale between households is a further extension.
+
+**Why this matters for the game:** Housing/mortgage dynamics produce some of the most dramatic and policy-relevant economic cycles. A player who deregulates lending standards sees a housing boom followed by a financial crisis. A player who tightens LTV ratios sees stable but slower growth. This is a rich policy lever.
+
+**Dependencies:** Construction sector must produce housing as a distinct output type. Bank balance sheet must track mortgage assets separately. Household balance sheet must track housing wealth.
 
 ## Government Bonds: Auction-Based
 
@@ -652,12 +708,13 @@ Where:
 **Funding and rationing:**
 
 ```
-MaxBorrowing = max(0, creditLimit - existingDebt)
-AvailableFunds = RetainedProfits + MaxBorrowing
-ActualInvestment = min(DesiredInvestment, AvailableFunds)
+Shortfall = max(0, DesiredInvestment - RetainedProfits)
+MaxLoan = largest loan where DSCR ≥ DSCR_threshold (see Creditworthiness Assessment)
+ActualBorrowing = min(Shortfall, MaxLoan)
+ActualInvestment = RetainedProfits + ActualBorrowing
 ```
 
-If `DesiredInvestment > RetainedProfits`, the firm seeks a bank loan for the shortfall (up to its credit limit). If even with borrowing the firm cannot fund desired investment, it invests what it can afford. This creates a realistic credit constraint channel where tight lending standards or high interest rates reduce investment.
+If `DesiredInvestment > RetainedProfits`, the firm applies for a bank loan for the shortfall. The bank computes the maximum loan the firm can service while maintaining DSCR ≥ 1.25 (see [Creditworthiness Assessment](#creditworthiness-assessment)). If even with borrowing the firm cannot fund desired investment, it invests what it can afford. This creates a realistic credit constraint channel where tight lending standards or high interest rates reduce investment.
 
 **Funding sources:**
 1. Internal funds (retained profits — used first)

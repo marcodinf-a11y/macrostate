@@ -124,11 +124,11 @@ Each finding has a unique ID (FDR-NNN), severity, affected locations, descriptio
 - **Severity:** Major
 - **Locations:** prd-review.md, PRD, ECONOMIC-MODEL.md
 - **Agents:** Agent 3 (G-011)
-- **Description:** Six ambiguities remain under-specified:
-  - A8: Bond auction type (uniform vs discriminatory)
-  - A9: Bond maturity structure
-  - A10: Creditworthiness DTI thresholds
-  - A11: Loan durations and amortization schedule
+- **Description:** Six ambiguities, three now resolved:
+  - ~~A8: Bond auction type (uniform vs discriminatory)~~ → Resolved: ADR-0017 (uniform price)
+  - ~~A9: Bond maturity structure~~ → Resolved: single fixed 12-month (MVP), multiple maturities (full game)
+  - ~~A10: Creditworthiness DTI thresholds~~ → Resolved: DSCR ≥ 1.25 for firms, DTI ≤ 0.40 for households
+  - ~~A11: Loan durations and amortization schedule~~ → Resolved: fixed amortizing installments; households 60 ticks, firms matched to capital life (capped 120 ticks)
   - A12: Price level weighting method
   - A13: Population counts and household reclassification triggers
 - **Suggestion:** Create ADRs for A8-A13, or document explicit "deferred to implementation" decisions with sensible defaults.
@@ -545,10 +545,10 @@ Complete status of all A-series items from prd-review.md:
 | A5 | Wage stickiness | Resolved | ADR-0013 | -- |
 | A6 | Sector mobility | Resolved | ADR-0014 | -- |
 | A7 | (not referenced in findings) | Presumed resolved | -- | -- |
-| A8 | Bond auction type | **Open** | -- | Needs ADR or documented default |
-| A9 | Bond maturity structure | **Open** | -- | Needs ADR or documented default |
-| A10 | Creditworthiness DTI thresholds | **Open** | -- | Needs ADR or documented default |
-| A11 | Loan durations / amortization | **Open** | -- | Needs ADR or documented default |
+| A8 | Bond auction type | Resolved | ADR-0017 | Uniform price (Dutch) auction |
+| A9 | Bond maturity structure | Resolved | MVP-SCOPE.md, ECONOMIC-MODEL.md, PRD | Single fixed 12-month maturity (MVP); multiple maturities with yield curve (full game) |
+| A10 | Creditworthiness DTI thresholds | Resolved | ECONOMIC-MODEL.md, PRD FR-BNK-002, PARAMETERS-COMMENTARY.md | Firms: DSCR ≥ 1.25; Households: DTI ≤ 0.40 |
+| A11 | Loan durations / amortization | Resolved | ECONOMIC-MODEL.md, PARAMETERS-COMMENTARY.md | Households: 60-tick fixed amortizing; Firms: `min(1/depRate, 120)` ticks; Mortgages: 360-tick (full game, draft) |
 | A12 | Price level weighting method | **Open** | -- | Needs ADR or documented default |
 | A13 | Population counts / reclassification | **Open** | -- | Needs ADR or documented default |
 | A14 | (not referenced) | Resolved | -- | -- |
